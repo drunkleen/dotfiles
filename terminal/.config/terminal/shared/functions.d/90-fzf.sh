@@ -1,6 +1,6 @@
 # ---- Enhanced fzf integration (portable across bash and zsh) ----
 
-FZF_PREVIEW="$HOME/.config/shell/shared/fzf-preview.sh"
+FZF_PREVIEW="$HOME/.config/terminal/shared/fzf-preview.sh"
 
 # --- Default opts: shared across all fzf invocations ---
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'

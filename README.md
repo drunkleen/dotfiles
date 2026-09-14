@@ -16,7 +16,7 @@ The current working tree contains these Stow packages:
 | [`leenfetch`](leenfetch) | `~/.config/leenfetch/` | Custom Leenfetch layout and modules |
 | [`nvim`](nvim) | `~/.config/nvim/` | Neovim configuration from the `tired.nvim` Git submodule |
 | [`omarchy`](omarchy) | `~/.config/omarchy/`, `~/.config/systemd/user/`, `~/.config/gtk-*`, `~/.icons/`, `~/.local/` | Lock screen, desktop clock, cursor, font, and resume input fix |
-| [`shell`](shell) | `~/.zshrc`, `~/.gitconfig`, `~/.config/shell/` | Zsh setup and shared shell utilities |
+| [`shell`](terminal) | `~/.zshrc`, `~/.gitconfig`, `~/.config/terminal/` | Zsh setup and shared shell utilities |
 | [`tmux`](tmux) | `~/.config/tmux/` | tmux keybindings, behavior, and theme |
 
 Each package mirrors its destination below `$HOME`. The repository's [`.stowrc`](.stowrc) sets the Stow target to `~/` and enables restowing.
@@ -153,10 +153,10 @@ sudo pacman -S capitaine-cursors
 
 ## Shell Configuration
 
-The [`shell`](shell) package uses a small `.zshrc` that loads modular configuration from `~/.config/shell/`:
+The [`shell`](shell) package uses a small `.zshrc` that loads modular configuration from `~/.config/terminal/`:
 
 ```text
-shell/.config/shell/
+terminal/.config/terminal/
 ├── shared/
 │   ├── aliases.d/
 │   ├── functions.d/
@@ -173,7 +173,7 @@ shell/.config/shell/
 
 The shared layer provides navigation and editor aliases, package/AUR helpers, Docker service helpers, project initializers, network utilities, notifications, fzf helpers, and the `shellhelp` command. Zsh adds history, completion, Starship, zoxide, fzf, autosuggestions, syntax highlighting, and Omarchy's environment bootstrap.
 
-Environment-specific values should be based on [`shell/.env.example`](shell/.env.example); do not commit private tokens or credentials.
+Environment-specific values should be based on [`terminal/.env.example`](terminal/.env.example); do not commit private tokens or credentials.
 
 ## Neovim
 

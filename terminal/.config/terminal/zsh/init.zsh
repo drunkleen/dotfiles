@@ -24,7 +24,7 @@ SAVEHIST=32768
 [[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
 
 # ---- Completion system ----
-fpath=("$HOME/.config/shell/zsh/completions" "$HOME/.config/shell/bash/completions" $fpath)
+fpath=("$HOME/.config/terminal/zsh/completions" "$HOME/.config/terminal/bash/completions" $fpath)
 autoload -Uz compinit
 compinit
 
@@ -65,13 +65,13 @@ fi
 bindkey '^[[C' forward-char
 
 # ---- Shared config (theme + aliases + functions), portable across shells ----
-export SHELL_SHARED_DIR="$HOME/.config/shell/shared"
+export SHELL_SHARED_DIR="$HOME/.config/terminal/shared"
 source "$SHELL_SHARED_DIR/theme.sh"
 source "$SHELL_SHARED_DIR/aliases.sh"
 source "$SHELL_SHARED_DIR/functions.sh"
 
 # ---- Zsh-specific aliases/functions ----
-for _zsh_extra in "$HOME"/.config/shell/zsh/aliases.d/*(N) "$HOME"/.config/shell/zsh/functions.d/*(N); do
+for _zsh_extra in "$HOME"/.config/terminal/zsh/aliases.d/*(N) "$HOME"/.config/terminal/zsh/functions.d/*(N); do
   [[ -f "$_zsh_extra" ]] && source "$_zsh_extra"
 done
 unset _zsh_extra

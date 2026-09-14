@@ -13,18 +13,23 @@ The current working tree contains these Stow packages:
 | --- | --- | --- |
 | [`fontconfig`](fontconfig) | `~/.config/fontconfig/` | Font-family defaults and fallbacks |
 | [`hypr`](hypr) | `~/.config/hypr/` | Omarchy-specific Hyprland Lua configuration |
-| [`leenfetch`](leenfetch) | `~/.config/leenfetch/` | Custom Leenfetch layout and modules |
 | [`nvim`](nvim) | `~/.config/nvim/` | Neovim configuration from the `tired.nvim` Git submodule |
-| [`omarchy`](omarchy) | `~/.config/omarchy/`, `~/.config/systemd/user/`, `~/.config/gtk-*`, `~/.icons/`, `~/.local/` | Lock screen, desktop clock, cursor, font, and resume input fix |
-| [`shell`](terminal) | `~/.zshrc`, `~/.gitconfig`, `~/.config/terminal/` | Zsh setup and shared shell utilities |
-| [`tmux`](tmux) | `~/.config/tmux/` | tmux keybindings, behavior, and theme |
+| [`omarchy`](omarchy) | `~/.config/omarchy/`, `~/.config/systemd/user/`, `~/.config/gtk-*`, `~/.icons/`, `~/.local/` | Lock screen, desktop clock, plugins, theme, cursor, font, and resume input fix |
+| [`terminal`](terminal) | `~/.zshrc`, `~/.gitconfig`, `~/.config/terminal/`, `~/.config/{alacritty,btop,foot,ghostty,kitty,leenfetch,tmux}/` | Zsh setup, shared shell utilities, terminal emulators, btop, Leenfetch, and tmux |
+| [`voxtype`](voxtype) | `~/.config/voxtype/` | Whisper-based dictation daemon and hotkey tooling |
 
 Each package mirrors its destination below `$HOME`. The repository's [`.stowrc`](.stowrc) sets the Stow target to `~/` and enables restowing.
 
-The two Omarchy plugins are maintained as separate Git submodules:
+The Omarchy plugins are maintained as separate Git submodules:
 
 - [`drunkleen/omarchy.paperwidget`](https://github.com/drunkleen/omarchy.paperwidget) → `omarchy/.config/omarchy/plugins/omarchy.paperwidget`
 - [`drunkleen/omarchy.pixlock`](https://github.com/drunkleen/omarchy.pixlock) → `omarchy/.config/omarchy/plugins/omarchy.pixlock`
+- [`mrCode/castr-indicator`](https://github.com/mrCode/castr-indicator) → `omarchy/.config/omarchy/plugins/castr.indicator`
+- [`thisisgm/omarchy-pods`](https://github.com/thisisgm/omarchy-pods) → `omarchy/.config/omarchy/plugins/io.github.thisisgm.omapods`
+- [`huacnlee/omamail`](https://github.com/huacnlee/omamail) → `omarchy/.config/omarchy/plugins/omamail`
+- [`stappmus/Omarchy-Spotify`](https://github.com/stappmus/Omarchy-Spotify) → `omarchy/.config/omarchy/plugins/quickshell.spotify`
+
+The [Leenium Omarchy theme](https://github.com/drunkleen/leenium.omarchy) is bundled as a submodule under `omarchy/.config/omarchy/themes/leenium.omarchy`.
 
 ## Requirements
 
@@ -49,13 +54,13 @@ cd ~/dotfiles
 Preview all current packages before linking them:
 
 ```bash
-stow --no --verbose fontconfig hypr leenfetch nvim omarchy shell tmux
+stow --no --verbose fontconfig hypr nvim omarchy terminal voxtype
 ```
 
 Install all current packages:
 
 ```bash
-stow fontconfig hypr leenfetch nvim omarchy shell tmux
+stow fontconfig hypr nvim omarchy terminal voxtype
 ```
 
 If the repository was cloned without `--recurse-submodules`, initialize the Neovim configuration afterward:
@@ -131,6 +136,21 @@ Its source repository is [drunkleen/omarchy.pixlock](https://github.com/drunklee
 
 Its source repository is [drunkleen/omarchy.paperwidget](https://github.com/drunkleen/omarchy.paperwidget).
 
+### Additional plugins
+
+The `omarchy` package also bundles several third-party plugins as submodules:
+
+- [`castr.indicator`](omarchy/.config/omarchy/plugins/castr.indicator) — cast the screen to an Apple TV or Chromecast from the bar, with a live mirror/extend indicator.
+- [`io.github.thisisgm.omapods`](omarchy/.config/omarchy/plugins/io.github.thisisgm.omapods) — AirPods status in the bar: per-pod and case battery, listening mode, adaptive noise level, and ear detection.
+- [`omamail`](omarchy/.config/omarchy/plugins/omamail) — a native email client for Gmail, HEY, and any IMAP mailbox.
+- [`quickshell.spotify`](omarchy/.config/omarchy/plugins/quickshell.spotify) — Spotify control in Quickshell using about 60 MB of memory instead of the official client's ~950 MB.
+
+These are scanned and enabled through Omarchy's plugin registry; see the setup script or `omarchy-plugin-enable` to activate them.
+
+### Omarchy theme
+
+The [Leenium Omarchy theme](omarchy/.config/omarchy/themes/leenium.omarchy) is a Git submodule providing the Stencil Pixel-7 styling used by the lock screen and desktop clock. Its source repository is [drunkleen/leenium.omarchy](https://github.com/drunkleen/leenium.omarchy).
+
 ### Resume input fix
 
 [`omarchy-fcitx5-resume.service`](omarchy/.config/systemd/user/omarchy-fcitx5-resume.service) runs a small D-Bus monitor that restarts Omarchy's managed fcitx5 service after resume. This avoids stale Wayland input grabs that can leave the lock screen unable to accept a password after suspend.
@@ -153,7 +173,7 @@ sudo pacman -S capitaine-cursors
 
 ## Shell Configuration
 
-The [`shell`](shell) package uses a small `.zshrc` that loads modular configuration from `~/.config/terminal/`:
+The [`terminal`](terminal) package uses a small `.zshrc` that loads modular configuration from `~/.config/terminal/`:
 
 ```text
 terminal/.config/terminal/
@@ -175,6 +195,18 @@ The shared layer provides navigation and editor aliases, package/AUR helpers, Do
 
 Environment-specific values should be based on [`terminal/.env.example`](terminal/.env.example); do not commit private tokens or credentials.
 
+### Terminal emulators and tools
+
+The `terminal` package also configures the terminal emulators and tools it relies on:
+
+- [`alacritty`](terminal/.config/alacritty) — Alacritty configuration.
+- [`foot`](terminal/.config/foot) — Foot terminal configuration.
+- [`ghostty`](terminal/.config/ghostty) — Ghostty configuration.
+- [`kitty`](terminal/.config/kitty) — Kitty configuration: `JetBrainsMono Nerd Font` at size 12, 14&nbsp;px window padding, and clipboard-friendly shortcuts. It includes Omarchy's theming file by default and overrides Omarchy's defaults from `/etc/xdg/kitty/kitty.conf`.
+- [`btop`](terminal/.config/btop) — System monitor theme, including a symlinked `current.theme` that follows the active Omarchy theme.
+- [`leenfetch`](terminal/.config/leenfetch) — Leenfetch layout, modules, and flags, previously shipped as a separate `leenfetch` package.
+- [`tmux`](terminal/.config/tmux) — tmux keybindings, behavior, and theme, previously shipped as a separate `tmux` package.
+
 ## Neovim
 
 The [`nvim/.config/nvim`](nvim/.config/nvim) directory is a Git submodule pointing to [drunkleen/tired.nvim](https://github.com/drunkleen/tired.nvim). Keeping it as a submodule allows the Neovim configuration to retain its own history while still being installed through this dotfiles repository.
@@ -195,7 +227,7 @@ Review the resulting submodule commit change before committing it in this reposi
 
 ## tmux
 
-The [`tmux`](tmux) package includes:
+The `terminal` package ships [`tmux.conf`](terminal/.config/tmux/tmux.conf) and includes:
 
 - `Ctrl+Space` as the primary prefix, with `Ctrl+B` as a secondary prefix
 - vi-style copy mode
@@ -210,6 +242,10 @@ Reload it after changes with:
 tmux source-file ~/.config/tmux/tmux.conf
 ```
 
+## voxtype
+
+The [`voxtype`](voxtype) package configures [Voxtype](https://github.com/ThatOneCalculator/voxtype), a Whisper-based dictation daemon. It writes an `idle`/`recording`/`transcribing` state file for external integrations (Waybar, polybar, etc.), records from the system default input device at 16&nbsp;kHz, pauses MPRIS media while recording, and notifies (optionally) on recording/transcription events. The hotkey itself is bound in Hyprland (`Super + Ctrl + X` by default).
+
 ## Maintenance
 
 Restow one package after changing it:
@@ -222,13 +258,13 @@ stow hypr
 Restow all current packages:
 
 ```bash
-stow fontconfig hypr leenfetch nvim omarchy shell tmux
+stow fontconfig hypr nvim omarchy terminal voxtype
 ```
 
 Remove a package's links without deleting the repository files:
 
 ```bash
-stow --delete tmux
+stow --delete voxtype
 ```
 
 Check what Stow would change:

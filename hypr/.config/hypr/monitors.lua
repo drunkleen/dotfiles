@@ -29,6 +29,7 @@ hl.monitor({
 hl.monitor({
   output = "HDMI-A-1",
   mode = "3440x1440@100.00",
+  -- mode = "2560x1440@120.00",
   position = "auto",
   scale = omarchy_monitor_scale,
 })

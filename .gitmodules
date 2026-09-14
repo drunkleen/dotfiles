@@ -2,6 +2,12 @@
 	path = nvim/.config/nvim
 	url = https://github.com/drunkleen/tired.nvim.git
 	branch = master
+
+[submodule "omarchy/.config/omarchy/themes/leenium.omarchy"]
+	path = omarchy/.config/omarchy/themes/leenium.omarchy
+	url = https://github.com/drunkleen/leenium.omarchy.git
+	branch = master
+
 [submodule "omarchy/.config/omarchy/plugins/omarchy.paperwidget"]
 	path = omarchy/.config/omarchy/plugins/omarchy.paperwidget
 	url = https://github.com/drunkleen/omarchy.paperwidget.git
@@ -10,7 +16,19 @@
 	path = omarchy/.config/omarchy/plugins/omarchy.pixlock
 	url = https://github.com/drunkleen/omarchy.pixlock.git
 	branch = main
-[submodule "omarchy/.config/omarchy/themes/leenium.omarchy"]
-	path = omarchy/.config/omarchy/themes/leenium.omarchy
-	url = https://github.com/drunkleen/leenium.omarchy.git
-	branch = master
+[submodule "omarchy/.config/omarchy/plugins/castr.indicator"]
+	path = omarchy/.config/omarchy/plugins/castr.indicator
+	url = https://github.com/mrCode/castr.git
+	branch = main
+[submodule "omarchy/.config/omarchy/plugins/io.github.thisisgm.omapods"]
+	path = omarchy/.config/omarchy/plugins/io.github.thisisgm.omapods
+	url = https://github.com/thisisgm/omarchy-pods.git
+	branch = main
+[submodule "omarchy/.config/omarchy/plugins/omamail"]
+	path = omarchy/.config/omarchy/plugins/omamail
+	url = https://github.com/huacnlee/omamail.git
+	branch = main
+[submodule "omarchy/.config/omarchy/plugins/quickshell.spotify"]
+	path = omarchy/.config/omarchy/plugins/quickshell.spotify
+	url = https://github.com/stappmus/Omarchy-Spotify.git
+	branch = main

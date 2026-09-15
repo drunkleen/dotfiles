@@ -25,6 +25,7 @@ SAVEHIST=32768
 
 # ---- Completion system ----
 fpath=("$HOME/.config/terminal/zsh/completions" "$HOME/.config/terminal/bash/completions" $fpath)
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'l:|=* r:|=*'
 autoload -Uz compinit
 compinit
 

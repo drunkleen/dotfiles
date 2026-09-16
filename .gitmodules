@@ -18,7 +18,7 @@
 	branch = main
 [submodule "omarchy/.config/omarchy/plugins/castr.indicator"]
 	path = omarchy/.config/omarchy/plugins/castr.indicator
-	url = https://github.com/mrCode/castr.git
+	url = https://github.com/mrCode/castr-indicator.git
 	branch = main
 [submodule "omarchy/.config/omarchy/plugins/io.github.thisisgm.omapods"]
 	path = omarchy/.config/omarchy/plugins/io.github.thisisgm.omapods

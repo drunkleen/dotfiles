@@ -1,11 +1,11 @@
 -- See https://wiki.hypr.land/Configuring/Basics/Monitors/
 -- List current monitors and supported resolutions with: hyprctl monitors all
 
-local omarchy_gdk_scale = 2
-local omarchy_monitor_scale = 1.6
+local desktop_gdk_scale = 2
+local desktop_monitor_scale = 1.6
 
-hl.env("GDK_SCALE", tostring(omarchy_gdk_scale))
-hl.monitor({ output = "", mode = "preferred", position = "auto", scale = omarchy_monitor_scale })
+hl.env("GDK_SCALE", tostring(desktop_gdk_scale))
+hl.monitor({ output = "", mode = "preferred", position = "auto", scale = desktop_monitor_scale })
 
 -- Configure a specific monitor.
 -- hl.monitor({ output = "DP-2", mode = "2560x1440@144", position = "0x0", scale = 1 })
@@ -15,7 +15,7 @@ hl.monitor({
   -- disabled = true,
   mode = "2560x1440@165.00",
   position = "auto",
-  scale = omarchy_monitor_scale,
+  scale = desktop_monitor_scale,
 })
 
 hl.monitor({
@@ -23,21 +23,21 @@ hl.monitor({
   -- disabled = true,
   mode = "2560x1440@165.00",
   position = "auto",
-  scale = omarchy_monitor_scale,
+  scale = desktop_monitor_scale,
 })
 
 hl.monitor({
   output = "HDMI-A-1",
   mode = "3440x1440@100.00",
   position = "auto",
-  scale = omarchy_monitor_scale,
+  scale = desktop_monitor_scale,
 })
 
 hl.monitor({
   output = "DP-2",
   mode = "2560x1440@59.95",
   position = "auto",
-  scale = omarchy_monitor_scale,
+  scale = desktop_monitor_scale,
 })
 
 -- Portrait/rotated secondary monitor (transform: 1 = 90°, 3 = 270°).

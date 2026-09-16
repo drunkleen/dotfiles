@@ -30,8 +30,9 @@
 -- o.bind("SUPER + H", nil, "voxtype record toggle")
 -- o.bind("SUPER + PERIOD", nil, "omarchy-shell shell toggle omarchy.emojis")
 
-hl.unbind("super + slash")
-hl.unbind("super + alt + slash")
+-- Default SUPER+SLASH scales the monitor up; SUPER+ALT+SLASH scales down.
+hl.unbind("SUPER + SLASH")
+hl.unbind("SUPER + ALT + SLASH")
 hl.unbind("SUPER + SHIFT + G")
 hl.unbind("SUPER + SHIFT + O")
 
@@ -112,7 +113,6 @@ o.bind("SUPER + KP_ADD", "Zoom in", zoom_in)
 o.bind("SUPER + KP_SUBTRACT", "Zoom out", zoom_out)
 
 if o.cmd_present("voxtype") then
-  hl.unbind("F9")
   hl.unbind("F9")
 
   o.bind("SUPER + CTRL + X", "Toggle dictation", "voxtype record toggle")

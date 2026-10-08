@@ -8,37 +8,11 @@ hl.env("GDK_SCALE", tostring(desktop_gdk_scale))
 hl.monitor({ output = "", mode = "preferred", position = "auto", scale = desktop_monitor_scale })
 
 -- Configure a specific monitor.
--- hl.monitor({ output = "DP-2", mode = "2560x1440@144", position = "0x0", scale = 1 })
 
-hl.monitor({
-  output = "eDP-1",
-  -- disabled = true,
-  mode = "2560x1440@165.00",
-  position = "auto",
-  scale = desktop_monitor_scale,
-})
+-- hl.monitor({ output = "DP-2", mode = "3440x1440@144.00", position = "auto", scale = desktop_monitor_scale })
 
-hl.monitor({
-  output = "eDP-2",
-  -- disabled = true,
-  mode = "2560x1440@165.00",
-  position = "auto",
-  scale = desktop_monitor_scale,
-})
+hl.monitor({ output = "DP-2", mode = "2560x1440@120.00", position = "auto", scale = desktop_monitor_scale })
 
-hl.monitor({
-  output = "HDMI-A-1",
-  mode = "3440x1440@100.00",
-  position = "auto",
-  scale = desktop_monitor_scale,
-})
-
-hl.monitor({
-  output = "DP-2",
-  mode = "2560x1440@59.95",
-  position = "auto",
-  scale = desktop_monitor_scale,
-})
 
 -- Portrait/rotated secondary monitor (transform: 1 = 90°, 3 = 270°).
 -- hl.monitor({ output = "DP-2", mode = "preferred", position = "auto", scale = 1, transform = 1 })

@@ -61,7 +61,7 @@ hl.unbind("SUPER + W")
 o.bind("SUPER + Q", "Close window", hl.dsp.window.close())
 
 hl.unbind("SUPER + SHIFT + W")
-o.bind("SUPER + W", "Omawrite", { launch = "omawrite" })
+o.bind("SUPER + W", "mousepad", { launch = "mousepad" })
 
 hl.unbind("SUPER + SHIFT + SLASH")
 o.bind("SUPER + SHIFT + SLASH", "Passwords Manager", "bitwarden-desktop")

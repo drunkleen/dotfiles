@@ -65,11 +65,17 @@
       ]
     }
   },
-  "plugins": [],
+  "plugins": [
+    {
+      "id": "miyamoto.lock"
+    }
+  ],
   "disabledPlugins": [
-    "omarchy.menu"
+    "omarchy.menu",
+    "omarchy.lock"
   ],
   "cloneSourceRestores": [
-    "miyamoto.menu"
+    "miyamoto.menu",
+    "miyamoto.lock"
   ]
 }

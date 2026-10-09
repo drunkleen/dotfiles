@@ -10,7 +10,7 @@ if ! pacman -Q capitaine-cursors >/dev/null 2>&1; then
 fi
 
 cd "$repo_dir"
-stow hypr omarchy
+stow hypr omarchy omarchy-bar omarchy-lock
 
 fc-cache -f "$HOME/.local/share/fonts"
 
@@ -25,11 +25,11 @@ if command -v hyprctl >/dev/null 2>&1; then
 fi
 
 if command -v omarchy-shell >/dev/null 2>&1; then
-  omarchy-shell shell rescanPlugins
-  omarchy-plugin-enable omarchy.pixlock
-  omarchy-plugin-enable omarchy.paperwidget
+  # Deploys shell.json (bar layout + plugin enablement) and restarts the shell,
+  # which also rescans the plugin registry.
+  "$repo_dir/scripts/omarchy-bar" apply
 else
-  printf '%s\n' 'Omarchy shell commands were not found; enable omarchy.pixlock and omarchy.paperwidget after installing Omarchy.'
+  printf '%s\n' 'Omarchy shell not found; run scripts/omarchy-bar apply after installing Omarchy.'
 fi
 
-printf '%s\n' 'Omarchy lock screen, desktop clock, font, Hyprland config, and resume input fix installed.'
+printf '%s\n' 'Omarchy bar, lock, theme, font, Hyprland config, and resume input fix installed.'

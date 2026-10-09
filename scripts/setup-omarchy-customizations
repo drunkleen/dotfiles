@@ -10,12 +10,22 @@ if ! pacman -Q capitaine-cursors >/dev/null 2>&1; then
 fi
 
 cd "$repo_dir"
-stow hypr omarchy omarchy-bar omarchy-lock
+stow hypr omarchy omarchy-bar omarchy-lock omarchy-desktop-widget
+
+# Runtime deps for the desktop widget (spectrum + fonts). Non-fatal: warn only.
+missing=()
+for pkg in cava inter-font ttf-material-symbols-variable; do
+  pacman -Q "$pkg" >/dev/null 2>&1 || missing+=("$pkg")
+done
+if ((${#missing[@]})); then
+  printf '%s\n' "Desktop widget: install missing packages with: sudo pacman -S ${missing[*]}" >&2
+fi
 
 fc-cache -f "$HOME/.local/share/fonts"
 
 systemctl --user daemon-reload
 systemctl --user enable --now omarchy-fcitx5-resume.service
+systemctl --user enable --now omarchy-desktop-widget.service
 
 gsettings set org.gnome.desktop.interface cursor-theme 'capitaine-cursors'
 gsettings set org.gnome.desktop.interface cursor-size 24
@@ -32,4 +42,4 @@ else
   printf '%s\n' 'Omarchy shell not found; run scripts/omarchy-bar apply after installing Omarchy.'
 fi
 
-printf '%s\n' 'Omarchy bar, lock, theme, font, Hyprland config, and resume input fix installed.'
+printf '%s\n' 'Omarchy bar, lock, desktop widget, theme, font, Hyprland config, and resume input fix installed.'

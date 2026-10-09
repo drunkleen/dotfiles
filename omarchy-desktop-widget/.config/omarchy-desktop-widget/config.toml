@@ -1,0 +1,50 @@
+# Omarchy desktop AIO widget (Ryoku-style)
+# Reloaded live on save (Quickshell watches this file).
+
+# Where to show: "all", or one/more monitor names (comma-separated), e.g. "DP-2"
+monitor = "DP-2"
+
+# Placement. anchor: top-left | top-center | top-right
+#                     center-left | center | center-right
+#                     bottom-left | bottom-center | bottom-right | free
+anchor = "bottom-left"
+margin_x = 56
+margin_y = 56
+# Used only when anchor = "free"
+x = 0
+y = 0
+
+scale = 0.5
+opacity = 1.0
+
+# Components
+show_clock = true
+show_date = true
+show_weather = true
+show_spectrum = true
+show_media = true
+
+# Clock
+clock24h = true
+
+# Fonts ("Inter Display" + "Material Symbols Rounded" match Ryoku)
+font_display = "Inter Display"
+font_icon = "Material Symbols Rounded"
+
+# Ink/accent: "" follows the current Omarchy theme; set "#rrggbb" to override
+ink = ""
+accent = ""
+
+[weather]
+city = "Tehran"
+refresh_seconds = 900
+units = "metric"
+
+[spectrum]
+bars = 40
+fps = 30
+smoothing = 45
+sensitivity = 1.0
+
+[media]
+max_width = 320

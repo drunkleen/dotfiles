@@ -1,0 +1,21 @@
+Omarchy desktop AIO widget
+==========================
+
+A Ryoku-style all-in-one desktop widget for Omarchy: weather, day, clock, date
+and a live cava audio spectrum, on a click-through bottom-layer Wayland surface.
+
+Portions of this project are adapted from Ryoku
+(https://github.com/Ryoku-dev/ryoku), which is licensed under the
+GNU General Public License v3.0 (GPL-3.0).
+
+Specifically adapted:
+  - widgets/AioWidget.qml   <- ryoku/shell/quickshell/shell/modules/desktop/aio/AioWidget.qml
+  - AudioBars.qml           <- ryoku/shell/quickshell/shell/services/AudioBars.qml
+  - Wmo.js (weather codes)  <- ryoku/shell/quickshell/shell/services/lib/weather.js
+
+Because of that, this widget is distributed under the GPL-3.0 as well.
+See <https://www.gnu.org/licenses/gpl-3.0.html>.
+
+The Ryoku-specific runtime (ryoku-shell daemon, widget host, matugen palette,
+material-you scheme) is NOT used; weather, configuration and theming are
+reimplemented for Omarchy (Open-Meteo + Omarchy theme colors).

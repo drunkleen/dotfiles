@@ -1,0 +1,8 @@
+singleton Config 1.0 Config.qml
+singleton Theme 1.0 Theme.qml
+singleton Now 1.0 Now.qml
+singleton Weather 1.0 Weather.qml
+singleton AudioBars 1.0 AudioBars.qml
+singleton Media 1.0 Media.qml
+GlyphIcon 1.0 GlyphIcon.qml
+AioWidget 1.0 AioWidget.qml

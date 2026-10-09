@@ -17,6 +17,7 @@ The current working tree contains these Stow packages:
 | [`omarchy`](omarchy) | `~/.config/omarchy/`, `~/.config/systemd/user/`, `~/.config/gtk-*`, `~/.icons/`, `~/.local/` | GTK settings, cursor, Stencil Pixel-7 font, Leenium theme, and resume input fix |
 | [`omarchy-bar`](omarchy-bar) | `~/.config/omarchy/plugins/miyamoto.{menu,workspaces}`, `~/.config/omarchy/shell.json` | Cloned top-bar menu and workspace pagination plus the bar/shell config |
 | [`omarchy-lock`](omarchy-lock) | `~/.config/omarchy/plugins/miyamoto.lock` | Cloned lock plugin re-skinned with the Ryoku qylock `clockwork/orbital` theme |
+| [`omarchy-desktop-widget`](omarchy-desktop-widget) | `~/.config/omarchy-desktop-widget/`, `~/.config/systemd/user/omarchy-desktop-widget.service` | Standalone Ryoku-style AIO desktop widget (weather, clock, date, cava spectrum, now-playing) |
 | [`terminal`](terminal) | `~/.zshrc`, `~/.gitconfig`, `~/.config/terminal/`, `~/.config/{alacritty,btop,foot,ghostty,kitty,leenfetch,tmux}/` | Zsh setup, shared shell utilities, terminal emulators, btop, Leenfetch, and tmux |
 | [`voxtype`](voxtype) | `~/.config/voxtype/` | Whisper-based dictation daemon and hotkey tooling |
 
@@ -26,6 +27,8 @@ The Omarchy shell customizations are user-owned clones of built-in plugins:
 
 - [`omarchy-bar`](omarchy-bar) holds `miyamoto.menu` (top-bar menu) and `miyamoto.workspaces` (workspace pagination), and owns `~/.config/omarchy/shell.json`.
 - [`omarchy-lock`](omarchy-lock) holds `miyamoto.lock`, a clone of Omarchy's lock plugin re-skinned with the Ryoku qylock `clockwork/orbital` lock.
+
+The [`omarchy-desktop-widget`](omarchy-desktop-widget) package is different: a standalone Quickshell config (its own systemd user service), not a clone. See [Desktop widget](#desktop-widget).
 
 The [Leenium Omarchy theme](https://github.com/drunkleen/leenium.omarchy) is bundled as a submodule under `omarchy/.config/omarchy/themes/leenium.omarchy`.
 
@@ -40,6 +43,8 @@ The base installation requires:
 
 The configuration also expects several tools used by the shell setup, including Zsh, Starship, zoxide, fzf, fd, eza, bat, ripgrep, tmux, and Leenfetch. Some helper functions additionally use Docker, `yay`, `jq`, and desktop utilities such as `xdg-open`.
 
+The desktop widget additionally requires `cava` (audio spectrum), `inter-font`, and `ttf-material-symbols-variable` (fonts).
+
 ## Installation
 
 Clone the Omarchy branch into `~/dotfiles`:
@@ -52,13 +57,13 @@ cd ~/dotfiles
 Preview all current packages before linking them:
 
 ```bash
-stow --no --verbose fontconfig hypr nvim omarchy omarchy-bar omarchy-lock terminal voxtype
+stow --no --verbose fontconfig hypr nvim omarchy omarchy-bar omarchy-lock omarchy-desktop-widget terminal voxtype
 ```
 
 Install all current packages:
 
 ```bash
-stow fontconfig hypr nvim omarchy omarchy-bar omarchy-lock terminal voxtype
+stow fontconfig hypr nvim omarchy omarchy-bar omarchy-lock omarchy-desktop-widget terminal voxtype
 ```
 
 If the repository was cloned without `--recurse-submodules`, initialize the Neovim configuration afterward:
@@ -81,7 +86,7 @@ Setting up from scratch on a new Omarchy install? Do the following in order.
 1. Install the base tools (Omarchy already provides `quickshell`, `qt6-svg`, etc.):
 
    ```bash
-   sudo pacman -S --needed git stow capitaine-cursors qt6-5compat
+   sudo pacman -S --needed git stow capitaine-cursors qt6-5compat cava inter-font ttf-material-symbols-variable
    ```
 
    Optional tools used by the shell/terminal config: `zsh`, `starship`, `zoxide`, `fzf`, `fd`, `eza`, `bat`, `ripgrep`, `tmux`, `jq`. The `voxtype` package needs the AUR `voxtype-bin`.
@@ -108,8 +113,8 @@ Setting up from scratch on a new Omarchy install? Do the following in order.
 
    ```bash
    cd ~/.dotfiles
-   stow --no --verbose fontconfig hypr nvim omarchy omarchy-bar omarchy-lock terminal voxtype
-   stow fontconfig hypr nvim omarchy omarchy-bar omarchy-lock terminal voxtype
+   stow --no --verbose fontconfig hypr nvim omarchy omarchy-bar omarchy-lock omarchy-desktop-widget terminal voxtype
+   stow fontconfig hypr nvim omarchy omarchy-bar omarchy-lock omarchy-desktop-widget terminal voxtype
    ```
 
 5. Run the Omarchy setup helper from the unlocked graphical session:
@@ -118,7 +123,7 @@ Setting up from scratch on a new Omarchy install? Do the following in order.
    ./scripts/setup-omarchy-customizations
    ```
 
-6. Verify: the top bar shows the `宮本` menu glyph and Chinese workspace numerals, `Super + Alt + Space` lists apps, and `Super + Ctrl + L` shows the orbital lock and unlocks with your password.
+6. Verify: the top bar shows the `宮本` menu glyph and Chinese workspace numerals, `Super + Alt + Space` lists apps, `Super + Ctrl + L` shows the orbital lock and unlocks with your password, and the AIO desktop widget appears on the wallpaper (weather, clock, date, spectrum).
 
 The lock theme requires `qt6-5compat`. If the `nvim` submodule fails to check out, its referenced commit has not been pushed to `drunkleen/tired.nvim` yet.
 
@@ -133,12 +138,13 @@ cd ~/dotfiles
 
 Run it from an unlocked graphical Omarchy session. It:
 
-1. Stows the `hypr`, `omarchy`, `omarchy-bar`, and `omarchy-lock` packages.
-2. Refreshes the user font cache.
-3. Reloads the user systemd manager.
-4. Enables and starts the fcitx5 resume monitor.
-5. Applies the bar/shell config (`scripts/omarchy-bar apply`), which restarts the shell.
-6. Sets `capitaine-cursors` as the Hyprland, GTK, and XCursor default at size 24.
+1. Stows the `hypr`, `omarchy`, `omarchy-bar`, `omarchy-lock`, and `omarchy-desktop-widget` packages.
+2. Warns if the desktop widget's runtime packages (`cava`, `inter-font`, `ttf-material-symbols-variable`) are missing.
+3. Refreshes the user font cache.
+4. Reloads the user systemd manager.
+5. Enables and starts the fcitx5 resume monitor and the desktop widget service.
+6. Applies the bar/shell config (`scripts/omarchy-bar apply`), which restarts the shell.
+7. Sets `capitaine-cursors` as the Hyprland, GTK, and XCursor default at size 24.
 
 If the Omarchy or Hyprland target files already exist, back them up before running the helper:
 
@@ -171,6 +177,29 @@ The shell customizations are user-owned clones of Omarchy's built-in plugins, ke
 - `miyamoto.lock` — Omarchy's lock plugin re-skinned with the Ryoku qylock `clockwork/orbital` lock (clock, tick rings, password/FIDO field), while keeping Omarchy's PAM, fingerprint, idle, and suspend integration.
 
 `~/.config/omarchy/shell.json` is owned by the `omarchy-bar` package and deployed with `scripts/omarchy-bar`.
+
+### Desktop widget
+
+[`omarchy-desktop-widget`](omarchy-desktop-widget) is a standalone Quickshell config that draws a Ryoku-style AIO card on a click-through bottom layer of the desktop (above the wallpaper, below windows):
+
+- weather (Open-Meteo; configurable city, units, refresh)
+- big weekday, clock (12/24-hour) and letter-spaced date
+- live audio spectrum via `cava` over the PipeWire playback monitor
+- optional now-playing line from MPRIS
+
+Ink and accent follow the current Omarchy theme by default. It never captures input (empty layer input region), leaves Omarchy's shell/bar/Hyprland config untouched, and is covered by fullscreen windows.
+
+Configuration lives in [`omarchy-desktop-widget/.config/omarchy-desktop-widget/config.toml`](omarchy-desktop-widget/.config/omarchy-desktop-widget/config.toml) — monitor selection, anchor/margins, scale, opacity, component toggles, clock format, fonts, ink/accent overrides, weather, spectrum, and media — and hot-reloads on save.
+
+Manage it with:
+
+```bash
+systemctl --user status  omarchy-desktop-widget
+systemctl --user restart omarchy-desktop-widget
+systemctl --user stop    omarchy-desktop-widget
+```
+
+It is under the GPL-3.0 because it adapts Ryoku's widget; see [`NOTICE`](omarchy-desktop-widget/.config/omarchy-desktop-widget/NOTICE).
 
 ### Omarchy theme
 
@@ -283,7 +312,7 @@ stow hypr
 Restow all current packages:
 
 ```bash
-stow fontconfig hypr nvim omarchy omarchy-bar omarchy-lock terminal voxtype
+stow fontconfig hypr nvim omarchy omarchy-bar omarchy-lock omarchy-desktop-widget terminal voxtype
 ```
 
 Remove a package's links without deleting the repository files:

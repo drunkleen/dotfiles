@@ -203,19 +203,13 @@ It is under the GPL-3.0 because it adapts Ryoku's widget; see [`NOTICE`](omarchy
 
 ### Omarchy theme
 
-The [Leenium Omarchy theme](omarchy/.config/omarchy/themes/leenium.omarchy) is a Git submodule providing the Stencil Pixel-7 styling. Its source repository is [drunkleen/leenium.omarchy](https://github.com/drunkleen/leenium.omarchy).
+The [Leenium Omarchy theme](omarchy/.config/omarchy/themes/leenium.omarchy) is a Git submodule. Its source repository is [drunkleen/leenium.omarchy](https://github.com/drunkleen/leenium.omarchy).
 
 ### Resume input fix
 
 [`omarchy-fcitx5-resume.service`](omarchy/.config/systemd/user/omarchy-fcitx5-resume.service) runs a small D-Bus monitor that restarts Omarchy's managed fcitx5 service after resume. This avoids stale Wayland input grabs that can leave the lock screen unable to accept a password after suspend.
 
 The service uses systemd's `%h` home-directory specifier, so it works without hard-coding a username.
-
-### Stencil Pixel-7 font
-
-The font is stored in [`omarchy/.local/share/fonts/stencil-pixel-7/`](omarchy/.local/share/fonts/stencil-pixel-7). Its original readme is included in the same directory. The font is free for home use; consult that file before commercial use.
-
-After installation, verify the customization by locking once and then performing one suspend/resume cycle. Confirm that the clock renders correctly, the password field is focused, and keyboard input works immediately.
 
 ### Cursor theme
 

@@ -410,20 +410,20 @@ Rectangle {
 
     Timer { id: boomTriggerTimer; interval: 1450; onTriggered: { boomSequence.start() } }
     function startLoginSequence() {
-        if (isWindup) return
-        // PAM never answers an empty key; the reveal blast would strand white.
+        if (_unlocked) return
+        // PAM never answers an empty key.
         if (passInput.text.length === 0) {
             errText.text = ""
             passInput.forceActiveFocus()
             return
         }
+        // The wind-up is only "checking…" feedback here; the blast is gated on
+        // success (onLoginSucceeded) so a wrong password never flashes the screen.
         if (root.enableWindup) {
             isWindup = true
             windupAnim.start()
-            boomTriggerTimer.start()
-        } else {
-            doLogin()
         }
+        doLogin()
     }
     // ── race condition guard ────────────────────────────────────────────────
     // _unlocked prevents boomSequence.onFinished: doLogin() from firing a
@@ -467,7 +467,10 @@ Rectangle {
                     boomReveal.start()
                 }
             } else if (root.enableWindup) {
-                // Password win: the wind-up already ran; lower the curtain.
+                // Password win: blast + reveal now, only after auth succeeded.
+                _sensorWindup = true
+                boomSequence.start()
+            } else {
                 playUnlockReveal()
             }
         }

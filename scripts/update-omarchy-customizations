@@ -1,0 +1,228 @@
+#!/usr/bin/env bash
+#
+# Update the Omarchy customizations in this dotfiles repository.
+#
+# Usage:
+#   update-omarchy-customizations [dotfiles|plugins|theme|all] [options]
+#
+# Targets:
+#   dotfiles   Pull the repo + submodules, restow every package, enable new services
+#   plugins    Update git-managed plugins, re-apply shell.json, report new plugins
+#   theme      Update + refresh + re-apply the current Omarchy theme
+#   all        dotfiles + plugins + theme (default)
+#
+# Options:
+#   --no-pull     Skip git fetch/pull and submodule updates
+#   --dry-run     Print actions without executing them
+#   --enable-new  Auto-enable discovered cloned plugins, then capture shell.json
+#   -h, --help    Show this help
+#
+set -euo pipefail
+
+repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+
+target="all"
+no_pull=0
+dry_run=0
+enable_new=0
+
+log() { printf 'update: %s\n' "$*"; }
+warn() { printf 'update: %s\n' "$*" >&2; }
+have() { command -v "$1" >/dev/null 2>&1; }
+
+run() {
+  if ((dry_run)); then
+    printf '+ %s\n' "$*"
+  else
+    "$@"
+  fi
+}
+
+usage() {
+  sed -n '3,18p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+}
+
+# A stow package is a top-level directory that mirrors $HOME.
+detect_packages() {
+  local dir base
+  for dir in "$repo_dir"/*/; do
+    [[ -d $dir ]] || continue
+    base="$(basename "$dir")"
+    [[ $base == scripts ]] && continue
+    if [[ -e $dir/.config || -e $dir/.local || -e $dir/.icons ||
+          -e $dir/.zshrc || -e $dir/.gitconfig ]]; then
+      printf '%s\n' "$base"
+    fi
+  done
+}
+
+packages=()
+while IFS= read -r pkg; do
+  packages+=("$pkg")
+done < <(detect_packages)
+
+enable_new_services() {
+  local svc file unit
+  local units=()
+  for svc in "${packages[@]}"; do
+    while IFS= read -r file; do
+      [[ -n $file ]] || continue
+      units+=("$(basename "$file")")
+    done < <(find "$repo_dir/$svc" -type f -path '*/.config/systemd/user/*.service' 2>/dev/null)
+  done
+  ((${#units[@]})) || return 0
+
+  local seen=()
+  while IFS= read -r unit; do
+    [[ -n $unit ]] || continue
+    if systemctl --user is-enabled "$unit" >/dev/null 2>&1; then
+      continue
+    fi
+    log "enabling new service: $unit"
+    run systemctl --user daemon-reload || warn "daemon-reload failed"
+    run systemctl --user enable --now "$unit" || warn "could not enable $unit"
+  done < <(printf '%s\n' "${units[@]}" | sort -u)
+}
+
+update_dotfiles() {
+  cd "$repo_dir"
+
+  if ((!no_pull)); then
+    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+      if [[ -n "$(git status --porcelain)" ]]; then
+        warn "working tree has local changes; a fast-forward pull may be refused"
+      fi
+      log "fetching and fast-forwarding $(basename "$repo_dir")"
+      run git fetch --prune || warn "git fetch failed; continuing"
+      run git pull --ff-only || warn "git pull --ff-only failed; continuing"
+      log "updating submodules (following tracked branches)"
+      run git submodule update --init --remote --recursive ||
+        warn "submodule update failed; continuing"
+      run git submodule status --recursive || true
+    fi
+  fi
+
+  if ((${#packages[@]} == 0)); then
+    warn "no stow packages detected"
+  else
+    log "stowing packages: ${packages[*]}"
+    run stow "${packages[@]}" ||
+      warn "stow reported conflicts; back up the offending target files and rerun"
+  fi
+
+  if have fc-cache; then
+    log "refreshing font cache"
+    run fc-cache -f "$HOME/.local/share/fonts" || warn "fc-cache failed"
+  fi
+
+  enable_new_services
+}
+
+report_plugins() {
+  local json enabled
+  json="$(omarchy plugin list --json 2>/dev/null || true)"
+  [[ -n $json ]] || return 0
+
+  enabled="$(printf '%s' "$json" | jq -r '.[] | select(.enabled == true) | .id' 2>/dev/null || true)"
+
+  local svc dir id found=0
+  for svc in "${packages[@]}"; do
+    for dir in "$repo_dir/$svc"/.config/omarchy/plugins/*/; do
+      [[ -d $dir ]] || continue
+      id="$(basename "$dir")"
+      if grep -qxF "$id" <<<"$enabled"; then
+        continue
+      fi
+      found=1
+      warn "repo plugin not enabled: $id   -> omarchy plugin enable $id"
+      if ((enable_new)); then
+        log "enabling new plugin: $id"
+        run omarchy plugin enable "$id" || warn "could not enable $id"
+      fi
+    done
+  done
+
+  if ((enable_new && found)); then
+    run "$repo_dir/scripts/miyamoto-bar" capture || warn "shell.json capture failed"
+    run omarchy restart shell || warn "shell restart failed"
+  fi
+}
+
+update_plugins() {
+  cd "$repo_dir"
+
+  if have omarchy; then
+    log "updating git-managed shell plugins"
+    run omarchy plugin update --yes || warn "omarchy plugin update failed"
+  else
+    warn "omarchy not found; skipping plugin update"
+  fi
+
+  if [[ -x $repo_dir/scripts/miyamoto-bar ]]; then
+    log "applying bar/shell config (repo shell.json -> live)"
+    run "$repo_dir/scripts/miyamoto-bar" apply || warn "miyamoto-bar apply failed"
+  fi
+
+  if have omarchy && have jq; then
+    report_plugins
+  elif ! have jq; then
+    warn "jq not found; cannot inspect the plugin registry"
+  fi
+}
+
+update_theme() {
+  if ! have omarchy; then
+    warn "omarchy not found; skipping theme update"
+    return 0
+  fi
+
+  log "updating user-installed git themes"
+  run omarchy theme update || warn "omarchy theme update failed"
+
+  log "refreshing current theme"
+  run omarchy theme refresh || warn "omarchy theme refresh failed"
+
+  local current
+  current="$(omarchy theme current 2>/dev/null || true)"
+  if [[ -n $current ]]; then
+    log "applying theme: $current"
+    run omarchy theme set "$current" || warn "omarchy theme set failed"
+  fi
+}
+
+while (($#)); do
+  case "$1" in
+    dotfiles | plugins | theme | all) target="$1" ;;
+    --no-pull) no_pull=1 ;;
+    --dry-run) dry_run=1 ;;
+    --enable-new) enable_new=1 ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    *)
+      warn "unknown argument: $1"
+      usage >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
+
+if ((!dry_run)) && ! have stow; then
+  warn "GNU Stow is required; install it with: sudo pacman -S stow"
+  exit 1
+fi
+
+case "$target" in
+  dotfiles) update_dotfiles ;;
+  plugins) update_plugins ;;
+  theme) update_theme ;;
+  all)
+    update_dotfiles
+    update_plugins
+    update_theme
+    ;;
+esac
+
+log "done ($target)"

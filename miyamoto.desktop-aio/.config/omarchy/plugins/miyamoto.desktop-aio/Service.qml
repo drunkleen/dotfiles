@@ -2,11 +2,11 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 
-// Entry point. One bottom-layer surface per selected monitor, carrying the AIO
-// widget. The surface is click-through (empty input region), so it never
-// interferes with windows, workspaces, keybinds or fullscreen apps.
-ShellRoot {
-  id: shell
+// Service plugin entry point. One bottom-layer surface per selected monitor,
+// carrying the AIO widget. The surface is click-through (empty input region),
+// so it never interferes with windows, workspaces, keybinds or fullscreen apps.
+Item {
+  id: root
 
   function placeX(anchor, w, total, m) {
     if (anchor.indexOf("left") >= 0) return m;
@@ -40,7 +40,7 @@ ShellRoot {
       anchors { top: true; left: true; right: true; bottom: true }
       exclusionMode: ExclusionMode.Ignore
       WlrLayershell.layer: WlrLayer.Bottom
-      WlrLayershell.namespace: "omarchy-desktop-widget"
+      WlrLayershell.namespace: "miyamoto.desktop-aio"
       WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
       // Empty input region: everything passes through to windows/desktop.
       mask: Region {}
@@ -52,10 +52,10 @@ ShellRoot {
         s: Config.scale
         x: Config.anchor === "free"
           ? Config.freeX
-          : shell.placeX(Config.anchor, widget.implicitWidth, win.width, Config.marginX)
+          : root.placeX(Config.anchor, widget.implicitWidth, win.width, Config.marginX)
         y: Config.anchor === "free"
           ? Config.freeY
-          : shell.placeY(Config.anchor, widget.implicitHeight, win.height, Config.marginY)
+          : root.placeY(Config.anchor, widget.implicitHeight, win.height, Config.marginY)
         width: implicitWidth
         height: implicitHeight
       }

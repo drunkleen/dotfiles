@@ -4,7 +4,7 @@
 	branch = master
 
 [submodule "omarchy/.config/omarchy/themes/leenium.omarchy"]
-	path = omarchy/.config/omarchy/themes/leenium.omarchy
+	path = leenium.omarchy/.config/omarchy/themes/leenium.omarchy
 	url = https://github.com/drunkleen/leenium.omarchy.git
 	branch = master
 

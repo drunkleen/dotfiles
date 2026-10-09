@@ -1,8 +1,8 @@
-# Omarchy desktop AIO widget (Ryoku-style)
+# Miyamoto desktop AIO widget (Ryoku-style)
 # Reloaded live on save (Quickshell watches this file).
 
 # Where to show: "all", or one/more monitor names (comma-separated), e.g. "DP-2"
-monitor = "DP-2"
+monitor = "all"
 
 # Placement. anchor: top-left | top-center | top-right
 #                     center-left | center | center-right
@@ -14,7 +14,7 @@ margin_y = 56
 x = 0
 y = 0
 
-scale = 0.5
+scale = 0.7
 opacity = 1.0
 
 # Components

@@ -68,6 +68,9 @@
   "plugins": [
     {
       "id": "miyamoto.lock"
+    },
+    {
+      "id": "miyamoto.desktop-aio"
     }
   ],
   "disabledPlugins": [

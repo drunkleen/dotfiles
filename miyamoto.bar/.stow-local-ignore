@@ -2,6 +2,6 @@
 \.git
 \.gitignore
 \.gitmodules
-# shell.json is copy-synced by scripts/omarchy-bar (Omarchy rewrites it with
+# shell.json is copy-synced by scripts/miyamoto-bar (Omarchy rewrites it with
 # atomic writes, which would replace a stow symlink with a real file).
 shell\.json

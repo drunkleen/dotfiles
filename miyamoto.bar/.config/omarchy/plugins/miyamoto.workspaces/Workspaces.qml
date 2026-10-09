@@ -67,7 +67,7 @@ BarWidget {
         bar: root.bar
         text: root.workspaceLabel(modelData)
         active: focused
-        activeColor: "#6fe2d6"
+        activeColor: "#fca6a8"
         fontFamily: "Noto Sans CJK JP"
         opacity: occupied || focused ? 1 : 0.5
         horizontalMargin: 6

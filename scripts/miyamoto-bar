@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+#
+# Sync the miyamoto.bar stow package's shell.json (copy-managed).
+#
+# Plugins under miyamoto.bar/.config/omarchy/plugins/ are stow-managed.
+# shell.json is NOT stowed: Omarchy rewrites it with atomic writes
+# (temp file + rename), which would replace a stow symlink with a real file
+# and silently un-manage it. So it is copied both ways here.
+#
+# Usage:
+#   miyamoto-bar apply     copy repo -> live, then restart the shell
+#   miyamoto-bar capture   copy live -> repo (then commit the repo)
+#   miyamoto-bar diff      show live vs repo differences
+set -euo pipefail
+
+repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+pkg_shell="$repo_dir/miyamoto.bar/.config/omarchy/shell.json"
+live_shell="${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/shell.json"
+
+case "${1:-}" in
+  apply)
+    [[ -f $pkg_shell ]] || { echo "miyamoto-bar: missing $pkg_shell" >&2; exit 1; }
+    install -Dm644 "$pkg_shell" "$live_shell"
+    echo "miyamoto-bar: applied shell.json -> $live_shell"
+    if command -v omarchy >/dev/null 2>&1; then
+      omarchy restart shell >/dev/null 2>&1 && echo "miyamoto-bar: restarted Omarchy shell" || true
+    fi
+    ;;
+  capture)
+    [[ -f $live_shell ]] || { echo "miyamoto-bar: missing $live_shell" >&2; exit 1; }
+    install -Dm644 "$live_shell" "$pkg_shell"
+    echo "miyamoto-bar: captured $live_shell -> $pkg_shell (commit to save)"
+    ;;
+  diff)
+    diff -u "$pkg_shell" "$live_shell" || true
+    ;;
+  *)
+    echo "Usage: miyamoto-bar <apply|capture|diff>" >&2
+    exit 1
+    ;;
+esac

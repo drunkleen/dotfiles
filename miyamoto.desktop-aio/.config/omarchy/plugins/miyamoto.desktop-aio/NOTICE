@@ -1,5 +1,5 @@
-Omarchy desktop AIO widget
-==========================
+Miyamoto desktop AIO widget
+===========================
 
 A Ryoku-style all-in-one desktop widget for Omarchy: weather, day, clock, date
 and a live cava audio spectrum, on a click-through bottom-layer Wayland surface.

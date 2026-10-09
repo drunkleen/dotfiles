@@ -4,12 +4,13 @@ import Quickshell
 import Quickshell.Io
 import "Toml.js" as Toml
 
-// User configuration, read from ~/.config/omarchy-desktop-widget/config.toml.
+// User configuration, read from
+// ~/.config/omarchy/plugins/miyamoto.desktop-aio/config.toml.
 // The file is watched, so edits apply live.
 QtObject {
   id: root
 
-  readonly property string path: (Quickshell.env("HOME") || "") + "/.config/omarchy-desktop-widget/config.toml"
+  readonly property string path: (Quickshell.env("HOME") || "") + "/.config/omarchy/plugins/miyamoto.desktop-aio/config.toml"
 
   property var data: ({})
 

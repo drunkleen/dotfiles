@@ -45,7 +45,7 @@ The configuration also expects several tools used by the shell setup, including 
 Clone the Omarchy branch into `~/dotfiles`:
 
 ```bash
-git clone --recurse-submodules --branch omarchy git@github.com:drunkleen/my-linux-dotfiles.git ~/dotfiles
+git clone --recurse-submodules --branch omarchy https://github.com/drunkleen/dotfiles.git ~/dotfiles
 cd ~/dotfiles
 ```
 
@@ -73,6 +73,54 @@ Stow does not overwrite existing files. If a target already exists, move it to a
 mv ~/.config/hypr ~/.config/hypr.pre-dotfiles
 stow hypr
 ```
+
+### Fresh-machine walkthrough
+
+Setting up from scratch on a new Omarchy install? Do the following in order.
+
+1. Install the base tools (Omarchy already provides `quickshell`, `qt6-svg`, etc.):
+
+   ```bash
+   sudo pacman -S --needed git stow capitaine-cursors qt6-5compat
+   ```
+
+   Optional tools used by the shell/terminal config: `zsh`, `starship`, `zoxide`, `fzf`, `fd`, `eza`, `bat`, `ripgrep`, `tmux`, `jq`. The `voxtype` package needs the AUR `voxtype-bin`.
+
+2. Clone the repository with its submodules:
+
+   ```bash
+   git clone --recurse-submodules --branch omarchy https://github.com/drunkleen/dotfiles.git ~/.dotfiles
+   cd ~/.dotfiles
+   ```
+
+3. Back up anything Stow would collide with (it never overwrites):
+
+   ```bash
+   mv ~/.config/hypr ~/.config/hypr.pre-dotfiles 2>/dev/null || true
+   mv ~/.config/omarchy/themes/leenium.omarchy ~/.config/omarchy/themes/leenium.omarchy.pre-dotfiles 2>/dev/null || true
+   mv ~/.config/gtk-3.0/settings.ini ~/.config/gtk-3.0/settings.ini.pre-dotfiles 2>/dev/null || true
+   mv ~/.config/gtk-4.0/settings.ini ~/.config/gtk-4.0/settings.ini.pre-dotfiles 2>/dev/null || true
+   ```
+
+   `~/.config/omarchy/shell.json` is not stowed (the `omarchy-bar` package manages it by copy), so it needs no backup.
+
+4. Stow every package:
+
+   ```bash
+   cd ~/.dotfiles
+   stow --no --verbose fontconfig hypr nvim omarchy omarchy-bar omarchy-lock terminal voxtype
+   stow fontconfig hypr nvim omarchy omarchy-bar omarchy-lock terminal voxtype
+   ```
+
+5. Run the Omarchy setup helper from the unlocked graphical session:
+
+   ```bash
+   ./scripts/setup-omarchy-customizations
+   ```
+
+6. Verify: the top bar shows the `宮本` menu glyph and Chinese workspace numerals, `Super + Alt + Space` lists apps, and `Super + Ctrl + L` shows the orbital lock and unlocks with your password.
+
+The lock theme requires `qt6-5compat`. If the `nvim` submodule fails to check out, its referenced commit has not been pushed to `drunkleen/tired.nvim` yet.
 
 ## Omarchy Setup
 

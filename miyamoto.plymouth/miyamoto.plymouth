@@ -1,0 +1,10 @@
+[Plymouth Theme]
+Name=Miyamoto
+Description=Miyamoto orbital boot splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/miyamoto
+ScriptFile=/usr/share/plymouth/themes/miyamoto/miyamoto.script
+Font=Outfit:style=Black 13
+MonospaceFont=Outfit:style=Black 13

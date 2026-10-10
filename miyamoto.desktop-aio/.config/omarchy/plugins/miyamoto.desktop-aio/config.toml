@@ -36,7 +36,7 @@ ink = ""
 accent = ""
 
 [weather]
-city = "Tehran"
+city = "Dresden"
 refresh_seconds = 900
 units = "metric"
 

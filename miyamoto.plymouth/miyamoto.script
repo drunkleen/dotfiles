@@ -1,0 +1,212 @@
+# Miyamoto boot theme -- mirrors the miyamoto.lock orbital clock.
+#   * left-anchored double tick-ring (minute + second dials) with a fixed
+#     bright hand at 3 o'clock, and the black indicator pill.
+#   * the LUKS prompt is styled like the lock's bottom-right login panel.
+# Assets are baked at 2x the lock's 768-tall coordinate system (see
+# build-assets.sh), so on screen: u = H / 768 and screen = asset_px * u / 2.
+
+Window.SetBackgroundTopColor(0, 0, 0);
+Window.SetBackgroundBottomColor(0, 0, 0);
+
+global.W = Window.GetWidth();
+global.H = Window.GetHeight();
+global.u = global.H / 768.0;
+global.k = global.u / 2.0;
+
+# clock cluster (lock: cx = 40*s at vertical centre, rings bleed off the left)
+global.cx = 40 * global.u;
+global.cy = global.H / 2;
+global.inner_r = 320 * global.u;
+global.sec_r = 480 * global.u;
+
+global.frame = 0;
+global.tick = 0;
+global.skip = 3;
+global.sec_step = 0.22;
+global.angle = 0;
+global.fade_frames = 24;
+
+# ── rings ────────────────────────────────────────────────────────────────────
+ring.outer_img = Image("ring_outer.png");
+ring.outer_base = ring.outer_img.Scale(
+  Math.Int(ring.outer_img.GetWidth() * global.k),
+  Math.Int(ring.outer_img.GetHeight() * global.k));
+ring.outer = Sprite(ring.outer_base);
+ring.outer.SetPosition(
+  Math.Int(global.cx - ring.outer_base.GetWidth() / 2),
+  Math.Int(global.cy - ring.outer_base.GetHeight() / 2), 10);
+ring.outer.SetOpacity(0);
+
+ring.inner_img = Image("ring_inner.png");
+ring.inner_base = ring.inner_img.Scale(
+  Math.Int(ring.inner_img.GetWidth() * global.k),
+  Math.Int(ring.inner_img.GetHeight() * global.k));
+ring.inner = Sprite(ring.inner_base);
+ring.inner.SetPosition(
+  Math.Int(global.cx - ring.inner_base.GetWidth() / 2),
+  Math.Int(global.cy - ring.inner_base.GetHeight() / 2), 8);
+ring.inner.SetOpacity(0);
+
+# ── fixed bright hands (the spotlighted 3-o'clock tick) ──────────────────────
+hand.inner_img = Image("hand_inner.png");
+hand.inner_base = hand.inner_img.Scale(
+  Math.Int(hand.inner_img.GetWidth() * global.k),
+  Math.Int(hand.inner_img.GetHeight() * global.k));
+hand.inner = Sprite(hand.inner_base);
+hand.inner.SetPosition(
+  Math.Int(global.cx + global.inner_r - hand.inner_base.GetWidth() / 2),
+  Math.Int(global.cy - hand.inner_base.GetHeight() / 2), 11);
+hand.inner.SetOpacity(0);
+
+hand.outer_img = Image("hand_outer.png");
+hand.outer_base = hand.outer_img.Scale(
+  Math.Int(hand.outer_img.GetWidth() * global.k),
+  Math.Int(hand.outer_img.GetHeight() * global.k));
+hand.outer = Sprite(hand.outer_base);
+hand.outer.SetPosition(
+  Math.Int(global.cx + global.sec_r - hand.outer_base.GetWidth() / 2),
+  Math.Int(global.cy - hand.outer_base.GetHeight() / 2), 12);
+hand.outer.SetOpacity(0);
+
+# ── indicator pill (lock: left = cx + 230*s, 330*s x 90*s) ───────────────────
+pill_img = Image("pill.png");
+pill_w = Math.Int(pill_img.GetWidth() * global.k);
+pill_h = Math.Int(pill_img.GetHeight() * global.k);
+pill = Sprite(pill_img.Scale(pill_w, pill_h));
+pill.SetPosition(Math.Int(global.cx + 230 * global.u),
+  Math.Int(global.cy - pill_h / 2), 1);
+pill.SetOpacity(0);
+
+# ── animation ────────────────────────────────────────────────────────────────
+fun reveal(opacity) {
+  ring.outer.SetOpacity(opacity);
+  ring.inner.SetOpacity(opacity);
+  hand.outer.SetOpacity(opacity);
+  hand.inner.SetOpacity(opacity);
+  pill.SetOpacity(opacity);
+}
+
+fun refresh() {
+  global.frame = global.frame + 1;
+
+  if (global.frame <= global.fade_frames) {
+    reveal(global.frame / global.fade_frames);
+  } else {
+    reveal(1);
+  }
+
+  global.tick = global.tick + 1;
+  if (global.tick >= global.skip) {
+    global.tick = 0;
+    global.angle = global.angle + global.sec_step;
+    img = ring.outer_base.Rotate(global.angle);
+    ring.outer.SetImage(img);
+    ring.outer.SetPosition(
+      Math.Int(global.cx - img.GetWidth() / 2),
+      Math.Int(global.cy - img.GetHeight() / 2), 10);
+  }
+}
+
+Plymouth.SetRefreshFunction(refresh);
+
+# ── login panel (bottom-right, lock: width 350*s, margin 80*s) ───────────────
+global.margin = 80 * global.u;
+global.panel_right = global.W - global.margin;
+global.panel_bottom = global.H - global.margin;
+global.panel_z = 10000;
+
+panel.sprites = [];
+panel.count = 0;
+
+fun panel_clear() {
+  for (i = 0; i < panel.count; i++) {
+    panel.sprites[i].SetOpacity(0);
+  }
+  panel.count = 0;
+}
+
+fun panel_add(img, x, y) {
+  sp = Sprite(img);
+  sp.SetPosition(Math.Int(x), Math.Int(y), global.panel_z);
+  panel.sprites[panel.count] = sp;
+  panel.count = panel.count + 1;
+  return sp;
+}
+
+# right-aligned text at the panel's right edge, vertically centred on cy
+fun panel_text(text, r, g, b, height, cy) {
+  img = Image.Text(text, r, g, b);
+  ih = img.GetHeight();
+  if (ih < 1) ih = 1;
+  h = Math.Int(height);
+  w = Math.Int(img.GetWidth() * height / ih);
+  img = img.Scale(w, h);
+  return panel_add(img, global.panel_right - w, cy - h / 2);
+}
+
+fun panel_show(prompt, bullets) {
+  panel_clear();
+
+  y = global.panel_bottom;
+  y = y - 15 * global.u;                  # error row (bottom)
+  y = y - 8 * global.u - 40 * global.u;   # button row
+  y = y - 8 * global.u - 30 * global.u;   # password row
+  pass_y = y + 15 * global.u;
+  y = y - 8 * global.u - 16 * global.u;   # prompt row
+  hint_y = y + 8 * global.u;
+  y = y - 8 * global.u - 32 * global.u;   # user row
+  user_y = y + 16 * global.u;
+
+  panel_text("ARCH", 0.533, 0.114, 0.125, 18 * global.u, user_y);
+
+  if (prompt != "") {
+    panel_text(prompt, 0.4, 0.4, 0.4, 10 * global.u, hint_y);
+  }
+
+  bsize = Math.Int(12 * global.u);
+  bgap = Math.Int(10 * global.u);
+  bullet_base = Image("bullet.png").Scale(bsize, bsize);
+  n = bullets;
+  if (n > 32) n = 32;
+  for (i = 0; i < n; i++) {
+    panel_add(bullet_base,
+      global.panel_right - (i + 1) * bsize - i * bgap,
+      pass_y - bsize / 2);
+  }
+}
+
+fun display_normal_callback() {
+  panel_clear();
+}
+
+fun display_password_callback(prompt, bullets) {
+  panel_show(prompt, bullets);
+}
+
+fun display_question_callback(prompt, entry_text) {
+  panel_show(prompt, 0);
+}
+
+Plymouth.SetDisplayNormalFunction(display_normal_callback);
+Plymouth.SetDisplayPasswordFunction(display_password_callback);
+Plymouth.SetDisplayQuestionFunction(display_question_callback);
+
+# ── status / error messages ──────────────────────────────────────────────────
+message.sprite = Sprite();
+message.sprite.SetOpacity(0);
+
+fun display_message_callback(text) {
+  img = Image.Text(text, 1.0, 0.267, 0.267);
+  message.sprite.SetImage(img);
+  message.sprite.SetPosition(
+    Math.Int(global.panel_right - img.GetWidth()),
+    Math.Int(global.panel_bottom - 15 * global.u), global.panel_z + 5);
+  message.sprite.SetOpacity(1);
+}
+
+fun hide_message_callback(text) {
+  message.sprite.SetOpacity(0);
+}
+
+Plymouth.SetDisplayMessageFunction(display_message_callback);
+Plymouth.SetHideMessageFunction(hide_message_callback);

@@ -1,0 +1,53 @@
+# Sakura Rain presets and palettes. Edit freely; config.toml picks one.
+
+[presets.zen]
+petal_count = 8
+spawn_rate = 0.12
+fall_speed = "very_slow"
+wind_strength = 0.05
+rotation_speed = "slow"
+opacity = 0.6
+fps_limit = 30
+
+[presets.sakura]
+petal_count = 25
+spawn_rate = 0.5
+fall_speed = "slow"
+wind_strength = 0.15
+rotation_speed = "slow"
+opacity = 0.75
+fps_limit = 30
+
+[presets.storm]
+petal_count = 60
+spawn_rate = 1.2
+fall_speed = "medium"
+wind_strength = 0.6
+rotation_speed = "medium"
+opacity = 0.85
+fps_limit = 60
+
+# custom has no values here: built-in defaults plus [settings] in config.toml.
+[presets.custom]
+
+# Each palette lists base/tip pairs. A petal shades from its base color at the
+# stem to its tip color. The accent is used on accent_chance of petals.
+
+[palettes.dark_red]
+petals = [
+  { base = "#5C1020", tip = "#A63A50" },  # deep burgundy to muted cherry
+  { base = "#8B1E2D", tip = "#A63A50" },  # dark crimson to muted cherry
+  { base = "#722F37", tip = "#8B1E2D" },  # wine to dark crimson
+  { base = "#5C1020", tip = "#722F37" },  # burgundy to wine
+]
+accent = { base = "#C98E9A", tip = "#EBCFD6" }  # dusty pink
+accent_chance = 0.1
+
+[palettes.dusty_pink]
+petals = [
+  { base = "#A63A50", tip = "#E0A5B2" },
+  { base = "#C98E9A", tip = "#F2D7DD" },
+  { base = "#8B1E2D", tip = "#C98E9A" },
+]
+accent = { base = "#F2D7DD", tip = "#FFF4F6" }
+accent_chance = 0.2

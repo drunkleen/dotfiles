@@ -61,6 +61,7 @@ Each package mirrors its destination below `$HOME`. The repo's [`.stowrc`](.stow
 | [`miyamoto.bar`](miyamoto.bar) | `~/.config/omarchy/plugins/miyamoto.{menu,workspaces}/`, `~/.config/omarchy/shell.json` | Top-bar menu and workspace pagination, plus the shell config |
 | [`miyamoto.desktop-aio`](miyamoto.desktop-aio) | `~/.config/omarchy/plugins/miyamoto.desktop-aio/` | Ryoku-style AIO desktop `service` plugin (weather, clock, date, cava spectrum, now-playing) |
 | [`miyamoto.lock`](miyamoto.lock) | `~/.config/omarchy/plugins/miyamoto.lock/` | Lock plugin re-skinned with the Ryoku qylock `clockwork/orbital` theme |
+| [`miyamoto.sakura-rain`](miyamoto.sakura-rain) | `~/.config/sakura-rain/`, `~/.config/quickshell/sakura-rain/`, `~/.config/systemd/user/sakura-rain.service`, `~/.local/bin/sakura-rain` | Sakura petal overlay (3D depth, window avoidance, TOML config). Install with `scripts/sakura-rain-install` |
 | [`nvim`](nvim) | `~/.config/nvim/` | Neovim configuration (Git submodule) |
 | [`omarchy`](omarchy) | `~/.config/gtk-*`, `~/.icons/`, `~/.config/systemd/user/`, `~/.local/bin/` | GTK settings, cursor, and the fcitx5 resume service |
 | [`terminal`](terminal) | `~/.zshrc`, `~/.gitconfig`, `~/.config/{terminal,alacritty,foot,ghostty,kitty,btop,leenfetch,tmux}/` | Zsh setup, shared shell utilities, terminal emulators, btop, Leenfetch, and tmux |
@@ -99,6 +100,13 @@ The desktop uses the dark `capitaine-cursors` variant at size 24, applied throug
 ### Resume input fix
 
 [`omarchy-fcitx5-resume.service`](omarchy/.config/systemd/user/omarchy-fcitx5-resume.service) runs a small D-Bus monitor that restarts Omarchy's managed fcitx5 service after resume, avoiding stale Wayland input grabs that can leave the lock screen unable to accept a password after suspend. It uses systemd's `%h` specifier, so no username is hard-coded.
+
+### Sakura Rain
+
+A petal overlay on the wallpaper layer. Install and uninstall with
+`scripts/sakura-rain-install` and `scripts/sakura-rain-uninstall`. Commands,
+settings, presets and troubleshooting are in
+[`miyamoto.sakura-rain/README.md`](miyamoto.sakura-rain/README.md).
 
 ## Shell environment
 

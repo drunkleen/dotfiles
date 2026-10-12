@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+#
+# Stop and disable the Sakura Rain service, then unlink miyamoto.sakura-rain.
+#
+# The package files in the repo are kept. Only the links in $HOME are removed.
+# ~/.config/sakura-rain/ is a stow link, so your config.toml edits live in the
+# repo and survive uninstall.
+set -euo pipefail
+
+repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+pkg=miyamoto.sakura-rain
+
+if systemctl --user cat sakura-rain.service >/dev/null 2>&1; then
+  systemctl --user disable --now sakura-rain.service >/dev/null 2>&1 || true
+  echo "sakura-rain-uninstall: service stopped and disabled"
+fi
+
+if [[ -d $repo_dir/$pkg ]]; then
+  cd "$repo_dir"
+  stow --no-folding --delete --verbose "$pkg"
+  echo "sakura-rain-uninstall: unlinked $pkg from \$HOME"
+else
+  echo "sakura-rain-uninstall: missing $repo_dir/$pkg; nothing to unlink" >&2
+  exit 1
+fi
+
+systemctl --user daemon-reload

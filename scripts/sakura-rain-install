@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+#
+# Install the miyamoto.sakura-rain stow package and enable its user service.
+#
+# Stow links each file (--no-folding), so ~/.config/quickshell/ is never turned
+# into a symlink to the repo and other Quickshell configs stay untouched.
+# Existing files that aren't stow links are never overwritten; stow aborts and
+# names them instead.
+set -euo pipefail
+
+repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+pkg=miyamoto.sakura-rain
+
+for tool in stow qs python3 systemctl; do
+  command -v "$tool" >/dev/null 2>&1 || { echo "sakura-rain-install: missing $tool" >&2; exit 1; }
+done
+[[ -d $repo_dir/$pkg ]] || { echo "sakura-rain-install: missing $repo_dir/$pkg" >&2; exit 1; }
+
+cd "$repo_dir"
+stow --no-folding --restow --verbose "$pkg"
+echo "sakura-rain-install: linked $pkg into \$HOME"
+
+# Validate the config before enabling anything.
+"$HOME/.local/bin/sakura-rain" config >/dev/null
+echo "sakura-rain-install: config ok"
+
+systemctl --user daemon-reload
+systemctl --user enable sakura-rain.service >/dev/null
+echo "sakura-rain-install: service enabled (starts with the graphical session)"
+
+if [[ -n ${WAYLAND_DISPLAY:-} ]]; then
+  systemctl --user restart sakura-rain.service
+  echo "sakura-rain-install: service started"
+else
+  echo "sakura-rain-install: no Wayland session here; start later with: sakura-rain start"
+fi

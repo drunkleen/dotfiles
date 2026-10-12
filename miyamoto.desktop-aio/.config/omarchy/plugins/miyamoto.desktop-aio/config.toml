@@ -7,14 +7,14 @@ monitor = "all"
 # Placement. anchor: top-left | top-center | top-right
 #                     center-left | center | center-right
 #                     bottom-left | bottom-center | bottom-right | free
-anchor = "bottom-left"
-margin_x = 56
-margin_y = 56
+anchor = "bottom-right"
+margin_x = 330
+margin_y = -18
 # Used only when anchor = "free"
 x = 0
 y = 0
 
-scale = 0.7
+scale = 0.55
 opacity = 1.0
 
 # Components

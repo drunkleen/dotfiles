@@ -43,8 +43,9 @@ omarchy restart shell
 
 `stow` links `~/.config/omarchy/plugins/miyamoto.desktop-aio/`; `omarchy plugin
 enable` adds the plugin to `~/.config/omarchy/shell.json`; restarting the shell
-loads it. (In this repository `shell.json` already declares
-`miyamoto.desktop-aio`, so `scripts/miyamoto-bar apply` is enough.)
+loads it. The setup helper installs the plugin files, but enablement is
+separate. `scripts/miyamoto-bar apply` manages only the Japanese menu button
+and workspace labels; it does not enable this desktop widget.
 
 To remove it:
 

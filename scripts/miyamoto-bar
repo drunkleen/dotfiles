@@ -1,69 +1,53 @@
 #!/usr/bin/env bash
-#
-# Sync the miyamoto.bar stow package's shell.json (copy-managed).
-#
-# Plugins under miyamoto.bar/.config/omarchy/plugins/ are stow-managed.
-# shell.json is NOT stowed: Omarchy rewrites it with atomic writes
-# (temp file + rename), which would replace a stow symlink with a real file
-# and silently un-manage it. So it is copied both ways here.
-#
-# Usage:
-#   miyamoto-bar apply     copy repo -> live, then restart the shell
-#   miyamoto-bar capture   copy live -> repo (then commit the repo)
-#   miyamoto-bar diff      show live vs repo differences
+# Replace only the stock menu button and workspace labels; keep the stock bar.
 set -euo pipefail
-
-repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-pkg_shell="$repo_dir/miyamoto.bar/.config/omarchy/shell.json"
 live_shell="${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/shell.json"
-
+defaults="${OMARCHY_PATH:-/usr/share/omarchy}/config/omarchy/shell.json"
 case "${1:-}" in
-  apply)
-    [[ -f $pkg_shell ]] || { echo "miyamoto-bar: missing $pkg_shell" >&2; exit 1; }
-    # Refuse to enable missing plugins: a failed Stow must not break the UI.
-    jq -e 'type == "object" and (.bar.layout | type == "object")' "$pkg_shell" >/dev/null
-    while IFS= read -r id; do
-      if [[ ! -f ${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/plugins/$id/manifest.json ]]; then
-        echo "miyamoto-bar: missing plugin $id; run scripts/setup-omarchy-customizations first" >&2
-        exit 1
-      fi
-    done < <(jq -r '[.bar.layout[][]?.id, .plugins[]?.id] | unique[] | select(startswith("miyamoto."))' "$pkg_shell")
-    mkdir -p -- "$(dirname -- "$live_shell")"
-    tmp=$(mktemp "${live_shell}.tmp.XXXXXX")
-    trap 'rm -f -- "$tmp"' EXIT
-    # Keep unrelated live settings (dock, other plugins, panel preferences).
-    if [[ -f $live_shell ]]; then
-      jq -s '.[0] as $live | .[1] as $repo | $live * $repo |
-        .plugins = (($repo.plugins + ($live.plugins // [])) | unique_by(.id)) |
-        .disabledPlugins = ((($live.disabledPlugins // []) + $repo.disabledPlugins) | unique) |
-        .cloneSourceRestores = ((($live.cloneSourceRestores // []) + $repo.cloneSourceRestores) | unique) |
-        del(.bar.transparent, .bar.centerAnchor)' "$live_shell" "$pkg_shell" > "$tmp"
-      backup="${live_shell}.backup.$(date +%Y%m%d-%H%M%S).$$"
-      cp -p -- "$live_shell" "$backup"
-      echo "miyamoto-bar: backup -> $backup"
-    else
-      cp -- "$pkg_shell" "$tmp"
-    fi
-    chmod 644 "$tmp"
-    mv -f -- "$tmp" "$live_shell"
-    echo "miyamoto-bar: applied shell.json -> $live_shell"
-    if command -v omarchy >/dev/null 2>&1; then
-      omarchy restart shell
-      echo "miyamoto-bar: restarted Omarchy shell"
-    fi
-    ;;
-  capture)
-    [[ -f $live_shell ]] || { echo "miyamoto-bar: missing $live_shell" >&2; exit 1; }
-    jq -e 'type == "object" and (.bar.layout | type == "object")' "$live_shell" >/dev/null
-    cp -p -- "$pkg_shell" "${pkg_shell}.backup.$(date +%Y%m%d-%H%M%S).$$"
-    install -Dm644 "$live_shell" "$pkg_shell"
-    echo "miyamoto-bar: captured $live_shell -> $pkg_shell (commit to save)"
-    ;;
-  diff)
-    diff -u "$pkg_shell" "$live_shell" || true
-    ;;
-  *)
-    echo "Usage: miyamoto-bar <apply|capture|diff>" >&2
-    exit 1
-    ;;
+  apply|diff) ;;
+  *) echo 'Usage: miyamoto-bar <apply|diff> (full-shell capture is no longer supported)' >&2; exit 1 ;;
 esac
+for id in miyamoto.menu miyamoto.workspaces; do
+  [[ -f ${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/plugins/$id/manifest.json ]] || {
+    echo "miyamoto-bar: missing $id; install plugins with setup-omarchy-customizations first" >&2
+    exit 1
+  }
+done
+mkdir -p -- "$(dirname -- "$live_shell")"
+tmp=$(mktemp "${live_shell}.tmp.XXXXXX")
+trap 'rm -f -- "$tmp"' EXIT
+source_file="$live_shell"
+[[ -f $source_file ]] || source_file="$defaults"
+jq --slurpfile defaults "$defaults" '
+  # Omarchy uses a complete user config, so derive the whole bar from its
+  # installed defaults at apply time, changing only these two widget IDs.
+  .bar = $defaults[0].bar |
+  .bar.layout |= (
+    with_entries(.value |= map(
+      if .id == "omarchy.menu" then .id = "miyamoto.menu"
+      elif .id == "omarchy.workspaces" then .id = "miyamoto.workspaces"
+      else . end))) |
+  if has("disabledPlugins") then
+    .disabledPlugins |= map(select(. != "omarchy.menu" and . != "miyamoto.menu" and . != "miyamoto.workspaces"))
+  else . end |
+  if has("cloneSourceRestores") then
+    .cloneSourceRestores |= map(select(. != "miyamoto.menu"))
+  else . end
+' "$source_file" > "$tmp"
+if [[ $1 == diff ]]; then
+  diff -u "$source_file" "$tmp" || [[ $? == 1 ]]
+  exit
+fi
+if cmp -s "$source_file" "$tmp"; then
+  echo 'miyamoto-bar: menu and Japanese workspace labels already applied'
+  exit
+fi
+if [[ -f $live_shell ]]; then
+  backup="${live_shell}.backup.$(date +%Y%m%d-%H%M%S).$$"
+  cp -p -- "$live_shell" "$backup"
+  echo "miyamoto-bar: backup -> $backup"
+fi
+chmod 644 "$tmp"
+mv -f -- "$tmp" "$live_shell"
+# shell.json and plugin files hot-reload; no full-shell restart required.
+echo 'miyamoto-bar: applied 宮本 menu button and Japanese workspace labels'

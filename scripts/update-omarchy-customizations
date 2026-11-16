@@ -7,14 +7,14 @@
 #
 # Targets:
 #   dotfiles   Pull the repo + submodules, restow every package, enable new services
-#   plugins    Update git-managed plugins, re-apply shell.json, report new plugins
+#   plugins    Update git-managed plugins, apply menu/workspace labels, report new plugins
 #   theme      Update + refresh + re-apply the current Omarchy theme
 #   all        dotfiles + plugins + theme (default)
 #
 # Options:
 #   --no-pull     Skip git fetch/pull and submodule updates
 #   --dry-run     Print actions without executing them
-#   --enable-new  Auto-enable discovered cloned plugins, then capture shell.json
+#   --enable-new  Auto-enable discovered cloned plugins, without saving a full-shell template
 #   -h, --help    Show this help
 #
 set -euo pipefail
@@ -142,7 +142,6 @@ report_plugins() {
   done
 
   if ((enable_new && found)); then
-    run "$repo_dir/scripts/miyamoto-bar" capture || warn "shell.json capture failed"
     run omarchy restart shell || warn "shell restart failed"
   fi
 }
@@ -158,7 +157,7 @@ update_plugins() {
   fi
 
   if [[ -x $repo_dir/scripts/miyamoto-bar ]]; then
-    log "applying bar/shell config (repo shell.json -> live)"
+    log "applying Japanese menu and workspace labels"
     run "$repo_dir/scripts/miyamoto-bar" apply || return 1
   fi
 

@@ -34,8 +34,7 @@ if command -v hyprctl >/dev/null 2>&1; then
 fi
 
 if command -v omarchy-shell >/dev/null 2>&1; then
-  # Deploys shell.json (bar layout + plugin enablement) and restarts the shell,
-  # which also rescans the plugin registry.
+  # Read the installed stock bar defaults and replace only its two widgets.
   "$repo_dir/scripts/miyamoto-bar" apply
 else
   printf '%s\n' 'Omarchy shell not found; run scripts/miyamoto-bar apply after installing Omarchy.'

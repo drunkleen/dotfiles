@@ -33,7 +33,7 @@ cd ~/.dotfiles
 ./scripts/setup-omarchy-customizations
 ```
 
-The setup helper installs `hypr`, `omarchy`, `miyamoto.bar`, `miyamoto.lock`, `miyamoto.desktop-aio`, and `leenium.omarchy`. It checks Stow conflicts before linking, preserves an existing real Leenium theme directory as a timestamped backup, refreshes the font cache, enables the fcitx5 resume monitor, sets `capitaine-cursors` at size 24, and applies the shell configuration after installing the plugins. Applying the shell configuration backs up the live file, preserves unrelated settings, and restarts the shell. Setup can be rerun after resolving a conflict or pulling changes.
+The setup helper installs `hypr`, `omarchy`, `miyamoto.bar`, `miyamoto.lock`, `miyamoto.desktop-aio`, and `leenium.omarchy`. It checks Stow conflicts before linking, preserves an existing real Leenium theme directory as a timestamped backup, refreshes the font cache, enables the fcitx5 resume monitor, sets `capitaine-cursors` at size 24, and applies the Japanese menu button and workspace labels after installing the plugins. The bar helper backs up the live file, reads Omarchy’s installed bar defaults, and replaces only the menu/workspace widget IDs. The shell hot-reloads the result. Setup can be rerun after resolving a conflict or pulling changes.
 
 Install any additional packages you want separately:
 
@@ -78,7 +78,7 @@ Each package mirrors its destination below `$HOME`. The repo's [`.stowrc`](.stow
 | [`fontconfig`](fontconfig) | `~/.config/fontconfig/` | Font-family defaults and fallbacks |
 | [`hypr`](hypr) | `~/.config/hypr/` | Omarchy-only Hyprland (Lua) configuration |
 | [`leenium.omarchy`](leenium.omarchy) | `~/.config/omarchy/themes/leenium.omarchy/` | Leenium Omarchy theme (Git submodule) |
-| [`miyamoto.bar`](miyamoto.bar) | `~/.config/omarchy/plugins/miyamoto.{menu,workspaces}/`, `~/.config/omarchy/shell.json` | Top-bar menu and workspace pagination, plus the shell config |
+| [`miyamoto.bar`](miyamoto.bar) | `~/.config/omarchy/plugins/miyamoto.{menu,workspaces}/` | 宮本 menu button and Japanese workspace labels |
 | [`miyamoto.desktop-aio`](miyamoto.desktop-aio) | `~/.config/omarchy/plugins/miyamoto.desktop-aio/` | Ryoku-style AIO desktop `service` plugin (weather, clock, date, cava spectrum, now-playing) |
 | [`miyamoto.lock`](miyamoto.lock) | `~/.config/omarchy/plugins/miyamoto.lock/` | Lock plugin re-skinned with the Ryoku qylock `clockwork/orbital` theme |
 | [`miyamoto.sakura-rain`](miyamoto.sakura-rain) | `~/.config/sakura-rain/`, `~/.config/quickshell/sakura-rain/`, `~/.config/systemd/user/sakura-rain.service`, `~/.local/bin/sakura-rain` | Sakura petal overlay (3D depth, window avoidance, TOML config). Install with `scripts/sakura-rain-install` |
@@ -95,13 +95,23 @@ Each package mirrors its destination below `$HOME`. The repo's [`.stowrc`](.stow
 
 ### Bar and lock
 
-The shell customizations are my own clones of Omarchy's built-in plugins:
+The bar uses two small customizations; the lock screen is a separate plugin:
 
-- `miyamoto.menu` — the top-bar menu, with a custom `宮本` glyph and a fallback app library.
-- `miyamoto.workspaces` — workspace pagination using Chinese numerals and a focused-accent color.
+- `miyamoto.menu` — a `宮本` button that opens Omarchy’s built-in menu.
+- `miyamoto.workspaces` — Omarchy’s workspace widget with Japanese labels (`一` through `十`), retaining its monitor, scrolling, and layout controls.
 - `miyamoto.lock` — Omarchy's lock plugin re-skinned with the Ryoku qylock `clockwork/orbital` lock (clock, tick rings, password/FIDO field), while keeping Omarchy's PAM, fingerprint, idle, and suspend integration.
 
-The repository template for `~/.config/omarchy/shell.json` lives in `miyamoto.bar`, but Stow deliberately ignores that file because Omarchy rewrites it atomically. `scripts/miyamoto-bar apply` merges the template into the live configuration, preserves unrelated settings, creates a timestamped backup beside the live file, and restarts the shell. It refuses to apply when required custom plugins are missing. Install plugins with setup first; stowing `miyamoto.bar` alone does not apply the shell configuration.
+`miyamoto.bar` contains only two widget customizations. It does not supply a bar implementation or a complete `shell.json`. `scripts/miyamoto-bar apply` removes old bar overrides, reads the complete bar settings from installed Omarchy defaults, and changes only the two widget IDs. All other bar sections, placement, appearance, and widgets match Omarchy. Omarchy requires a complete user configuration rather than merging partial overrides, so rerun the helper after an Omarchy update to pick up new defaults. The built-in menu opens behind the `宮本` button. Idle settings and service plugins are preserved. The live file is backed up before changes and hot-reloads without restarting the shell.
+
+See [the bar package README](miyamoto.bar/README.md) for standalone installation, updates, and removal.
+
+The setup helper installs the lock and desktop widget files but does not enable these optional services. Enable them separately if wanted:
+
+```bash
+omarchy plugin enable miyamoto.lock
+omarchy plugin enable miyamoto.desktop-aio
+omarchy restart shell
+```
 
 ### Desktop AIO
 
@@ -178,19 +188,19 @@ The [`voxtype`](voxtype) package configures [Voxtype](https://github.com/ThatOne
 
 ### Updating everything
 
-[`scripts/update-omarchy-customizations`](scripts/update-omarchy-customizations) pulls the repo and submodules, restows every package, applies the shell/bar config, and updates the theme:
+[`scripts/update-omarchy-customizations`](scripts/update-omarchy-customizations) pulls the repo and submodules, restows packages, applies the Japanese labels to the stock bar, and updates the theme:
 
 ```bash
 cd ~/.dotfiles
 ./scripts/update-omarchy-customizations            # everything (dotfiles + plugins + theme)
 ./scripts/update-omarchy-customizations dotfiles   # pull + restow packages only
-./scripts/update-omarchy-customizations plugins    # update plugins + re-apply shell.json
+./scripts/update-omarchy-customizations plugins    # update plugins + apply Japanese labels
 ./scripts/update-omarchy-customizations theme      # update + refresh + re-apply the theme
 ```
 
-New packages are detected and stowed automatically, and any new stow-managed user service is enabled. The update helper uses the same Stow conflict checks and theme backup handling as setup; a Stow conflict stops the update before shell settings are applied. Review detected packages before running it, since it includes optional packages too. New plugins are enabled when `shell.json` declares them; the script reports any repo plugin that still needs wiring.
+New packages are detected and stowed automatically, and any new stow-managed user service is enabled. The update helper uses the same Stow conflict checks and theme backup handling as setup; a Stow conflict stops the update before shell settings are applied. Review detected packages before running it, since it includes optional packages too. The bar helper enables only its two widgets; the script reports other installed plugins that are not enabled. Enable optional services explicitly, or use `--enable-new` to enable all reported plugins.
 
-Useful flags: `--no-pull` (skip network/submodule updates), `--dry-run` (print actions only), `--enable-new` (auto-enable reported plugins and capture `shell.json` back into the repo).
+Useful flags: `--no-pull` (skip network/submodule updates), `--dry-run` (print actions only), `--enable-new` (auto-enable reported plugins).
 
 ### Manual maintenance
 
@@ -211,20 +221,19 @@ For a custom set of packages that includes the theme, use the shared installer t
 
 This helper only installs links. Use the full setup helper for cursor settings, service enablement, and shell configuration deployment.
 
-### Applying and saving bar changes
+### Applying the Japanese bar labels
 
 ```bash
 cd ~/.dotfiles
-./scripts/miyamoto-bar diff       # compare the repository template with live settings
-./scripts/miyamoto-bar apply      # apply repository settings after plugins are installed
-./scripts/miyamoto-bar capture    # save live settings into the repository template
+./scripts/miyamoto-bar diff       # preview stock bar restoration and Japanese labels
+./scripts/miyamoto-bar apply      # apply after the plugins are installed
 ```
 
-`capture` backs up the previous template beside the repository file before copying the live configuration. Review the diff before committing: captured settings can include machine-specific choices and additional plugins. `apply` prints the live backup path and reports restart failures.
+The bar helper manages only the menu button and workspace labels. Full-shell `capture` is no longer supported. Applying it restores the rest of the bar to Omarchy defaults by removing previous bar overrides. Lock and desktop widget enablement are independent of the bar helper.
 
 ### Recovering after a failed setup
 
-If the menu, workspace widget, lock plugin, or desktop widget disappears after applying settings, rerun the repaired setup to install the missing plugins before applying the configuration:
+If the menu button or workspace labels disappear, rerun setup to install their plugins and apply the stock bar with Japanese labels:
 
 ```bash
 cd ~/.dotfiles
@@ -234,6 +243,8 @@ hyprctl configerrors
 systemctl --user status omarchy-fcitx5-resume.service
 ```
 
+For a missing lock or desktop widget, check `omarchy plugin list` and explicitly enable the desired service with the commands above. The bar helper preserves existing service settings.
+
 If you need the shell settings from before an apply, inspect the backups and restore the chosen file (replace the placeholder with an actual filename):
 
 ```bash
@@ -242,7 +253,7 @@ cp "$HOME/.config/omarchy/shell.json.backup.<timestamp>.<pid>" ~/.config/omarchy
 omarchy restart shell
 ```
 
-Unlinking a plugin package does not remove its entries from the copied `shell.json`. Switch to the built-in menu, workspace widget, or lock plugin and disable the desktop widget through Omarchy before unlinking their custom packages.
+Unlinking a plugin package does not remove its entries from the live `shell.json`. Switch to the built-in menu, workspace widget, or lock plugin and disable the desktop widget through Omarchy before unlinking their custom packages.
 
 ## Notes
 

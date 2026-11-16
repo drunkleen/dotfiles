@@ -2,6 +2,8 @@
 \.git
 \.gitignore
 \.gitmodules
-# shell.json is copy-synced by scripts/miyamoto-bar (Omarchy rewrites it with
-# atomic writes, which would replace a stow symlink with a real file).
+# Never deploy a full-shell configuration from this widget-only package.
 shell\.json
+
+# Package documentation is not a home-directory configuration file.
+README\.md

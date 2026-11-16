@@ -106,8 +106,7 @@ update_dotfiles() {
     warn "no stow packages detected"
   else
     log "stowing packages: ${packages[*]}"
-    run stow "${packages[@]}" ||
-      warn "stow reported conflicts; back up the offending target files and rerun"
+    run "$repo_dir/scripts/stow-omarchy-packages" "${packages[@]}" || return 1
   fi
 
   if have fc-cache; then
@@ -160,7 +159,7 @@ update_plugins() {
 
   if [[ -x $repo_dir/scripts/miyamoto-bar ]]; then
     log "applying bar/shell config (repo shell.json -> live)"
-    run "$repo_dir/scripts/miyamoto-bar" apply || warn "miyamoto-bar apply failed"
+    run "$repo_dir/scripts/miyamoto-bar" apply || return 1
   fi
 
   if have omarchy && have jq; then

@@ -20,14 +20,42 @@ live_shell="${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/shell.json"
 case "${1:-}" in
   apply)
     [[ -f $pkg_shell ]] || { echo "miyamoto-bar: missing $pkg_shell" >&2; exit 1; }
-    install -Dm644 "$pkg_shell" "$live_shell"
+    # Refuse to enable missing plugins: a failed Stow must not break the UI.
+    jq -e 'type == "object" and (.bar.layout | type == "object")' "$pkg_shell" >/dev/null
+    while IFS= read -r id; do
+      if [[ ! -f ${XDG_CONFIG_HOME:-$HOME/.config}/omarchy/plugins/$id/manifest.json ]]; then
+        echo "miyamoto-bar: missing plugin $id; run scripts/setup-omarchy-customizations first" >&2
+        exit 1
+      fi
+    done < <(jq -r '[.bar.layout[][]?.id, .plugins[]?.id] | unique[] | select(startswith("miyamoto."))' "$pkg_shell")
+    mkdir -p -- "$(dirname -- "$live_shell")"
+    tmp=$(mktemp "${live_shell}.tmp.XXXXXX")
+    trap 'rm -f -- "$tmp"' EXIT
+    # Keep unrelated live settings (dock, other plugins, panel preferences).
+    if [[ -f $live_shell ]]; then
+      jq -s '.[0] as $live | .[1] as $repo | $live * $repo |
+        .plugins = (($repo.plugins + ($live.plugins // [])) | unique_by(.id)) |
+        .disabledPlugins = ((($live.disabledPlugins // []) + $repo.disabledPlugins) | unique) |
+        .cloneSourceRestores = ((($live.cloneSourceRestores // []) + $repo.cloneSourceRestores) | unique) |
+        del(.bar.transparent, .bar.centerAnchor)' "$live_shell" "$pkg_shell" > "$tmp"
+      backup="${live_shell}.backup.$(date +%Y%m%d-%H%M%S).$$"
+      cp -p -- "$live_shell" "$backup"
+      echo "miyamoto-bar: backup -> $backup"
+    else
+      cp -- "$pkg_shell" "$tmp"
+    fi
+    chmod 644 "$tmp"
+    mv -f -- "$tmp" "$live_shell"
     echo "miyamoto-bar: applied shell.json -> $live_shell"
     if command -v omarchy >/dev/null 2>&1; then
-      omarchy restart shell >/dev/null 2>&1 && echo "miyamoto-bar: restarted Omarchy shell" || true
+      omarchy restart shell
+      echo "miyamoto-bar: restarted Omarchy shell"
     fi
     ;;
   capture)
     [[ -f $live_shell ]] || { echo "miyamoto-bar: missing $live_shell" >&2; exit 1; }
+    jq -e 'type == "object" and (.bar.layout | type == "object")' "$live_shell" >/dev/null
+    cp -p -- "$pkg_shell" "${pkg_shell}.backup.$(date +%Y%m%d-%H%M%S).$$"
     install -Dm644 "$live_shell" "$pkg_shell"
     echo "miyamoto-bar: captured $live_shell -> $pkg_shell (commit to save)"
     ;;

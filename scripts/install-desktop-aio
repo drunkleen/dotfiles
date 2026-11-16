@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# Install the standalone plugin and migrate the old Stow deployment safely.
+set -euo pipefail
+id=drunkleen.desktop-aio
+url=https://github.com/drunkleen/drunkleen.omarchy-desktop-aio
+plugins="$HOME/.config/omarchy/plugins"
+legacy="$plugins/miyamoto.desktop-aio"
+target="$plugins/$id"
+config="${XDG_CONFIG_HOME:-$HOME/.config}/$id"
+state="${XDG_STATE_HOME:-$HOME/.local/state}"
+shell_config="$HOME/.config/omarchy/shell.json"
+
+# Personal settings and placement must never become part of the Git checkout.
+if [[ -f $legacy/config.toml && ! -e $config/config.toml ]]; then
+  mkdir -p "$config"
+  cp -p -- "$legacy/config.toml" "$config/config.toml"
+fi
+if [[ -f $state/miyamoto.desktop-aio/placement.json && ! -e $state/$id/placement.json ]]; then
+  mkdir -p "$state/$id"
+  cp -p -- "$state/miyamoto.desktop-aio/placement.json" "$state/$id/placement.json"
+fi
+
+was_enabled=false
+if [[ -e $legacy || -L $legacy ]]; then
+  # Fail before changing the deployment if the live registry is unavailable.
+  registry=$(omarchy plugin list --json)
+  if jq -e 'any(.[]; .id == "miyamoto.desktop-aio" and .enabled)' <<<"$registry" >/dev/null ||
+    { [[ -f $shell_config ]] && jq -e 'any(.plugins[]?; .id == "miyamoto.desktop-aio")' "$shell_config" >/dev/null; }; then
+    was_enabled=true
+  fi
+fi
+
+if [[ ! -e $target && ! -L $target ]]; then
+  omarchy plugin add "$url" --yes
+elif [[ ! -d $target/.git || -L $target ]]; then
+  printf 'Refusing to replace an unmanaged plugin at %s\n' "$target" >&2
+  exit 1
+fi
+
+if [[ $was_enabled == true ]]; then
+  # Discovery is asynchronous after plugin add/rescan.
+  discovered=false
+  for ((attempt = 0; attempt < 40; attempt++)); do
+    if omarchy plugin list --json | jq -e --arg id "$id" 'any(.[]; .id == $id)' >/dev/null; then
+      discovered=true
+      break
+    fi
+    sleep 0.1
+  done
+  [[ $discovered == true ]] || { echo "Desktop AIO was not discovered by the shell" >&2; exit 1; }
+  omarchy plugin enable "$id"
+  if ! omarchy plugin disable miyamoto.desktop-aio; then
+    # A pull may already have removed the old Stow package and its manifest.
+    # Remove its stale service reference without replacing other shell settings.
+    backup="${shell_config}.backup.$(date +%Y%m%d-%H%M%S).$$"
+    cp -p -- "$shell_config" "$backup"
+    temporary=$(mktemp "${shell_config}.tmp.XXXXXX")
+    trap '[[ -z ${temporary:-} ]] || rm -f -- "$temporary"' EXIT
+    jq '.plugins |= map(select(.id != "miyamoto.desktop-aio"))' "$shell_config" > "$temporary"
+    chmod --reference="$shell_config" "$temporary"
+    mv -- "$temporary" "$shell_config"
+    temporary=""
+  fi
+fi
+
+# Keep a complete recovery copy outside both the repo and plugin scan directory.
+if [[ -e $legacy || -L $legacy ]]; then
+  backup="$state/$id/migration-backups/$(date +%Y%m%d-%H%M%S).$$"
+  mkdir -p "$backup"
+  if [[ -e $legacy ]]; then
+    cp -aL -- "$legacy" "$backup/miyamoto.desktop-aio"
+  else
+    cp -a -- "$legacy" "$backup/legacy-symlink"
+  fi
+  if [[ -L $legacy ]]; then
+    unlink -- "$legacy"
+  else
+    mv -- "$legacy" "$backup/original-deployment"
+  fi
+  printf 'Legacy Desktop AIO backed up to %s\n' "$backup"
+  omarchy-shell shell rescanPlugins >/dev/null
+fi
+printf 'Desktop AIO installed. Enable with: omarchy plugin enable %s\n' "$id"

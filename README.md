@@ -33,7 +33,7 @@ cd ~/.dotfiles
 ./scripts/setup-omarchy-customizations
 ```
 
-The setup helper installs `hypr`, `omarchy`, `miyamoto.bar`, `miyamoto.lock`, `miyamoto.desktop-aio`, and `leenium.omarchy`. It checks Stow conflicts before linking, preserves an existing real Leenium theme directory as a timestamped backup, refreshes the font cache, enables the fcitx5 resume monitor, sets `capitaine-cursors` at size 24, and applies the Japanese menu button and workspace labels after installing the plugins. The bar helper backs up the live file, reads Omarchy’s installed bar defaults, and replaces only the menu/workspace widget IDs. The shell hot-reloads the result. Setup also selects Ghostty as the default terminal and Zsh as the login shell. The `omarchy` package supplies the Firefox browser preference. Setup can be rerun after resolving a conflict or pulling changes. Log out and back in after changing the login shell.
+The setup helper installs `hypr`, `omarchy`, `miyamoto.bar`, `miyamoto.lock`, and `leenium.omarchy`, and installs [Drunkleen Desktop AIO](https://github.com/drunkleen/drunkleen.omarchy-desktop-aio) through `omarchy plugin add`. It checks Stow conflicts before linking, preserves an existing real Leenium theme directory as a timestamped backup, refreshes the font cache, enables the fcitx5 resume monitor, sets `capitaine-cursors` at size 24, and applies the Japanese menu button and workspace labels after installing the plugins. The bar helper backs up the live file, reads Omarchy’s installed bar defaults, and replaces only the menu/workspace widget IDs. The shell hot-reloads the result. Setup also selects Ghostty as the default terminal and Zsh as the login shell. The `omarchy` package supplies the Firefox browser preference. Setup can be rerun after resolving a conflict or pulling changes. Log out and back in after changing the login shell.
 
 Install any additional packages you want separately:
 
@@ -114,7 +114,6 @@ Each package mirrors its destination below `$HOME`. The repo's [`.stowrc`](.stow
 | [`hypr`](hypr) | `~/.config/hypr/` | Omarchy-only Hyprland (Lua) configuration |
 | [`leenium.omarchy`](leenium.omarchy) | `~/.config/omarchy/themes/leenium.omarchy/` | Leenium Omarchy theme (Git submodule) |
 | [`miyamoto.bar`](miyamoto.bar) | `~/.config/omarchy/plugins/miyamoto.{menu,workspaces}/` | 宮本 menu button and Japanese workspace labels |
-| [`miyamoto.desktop-aio`](miyamoto.desktop-aio) | `~/.config/omarchy/plugins/miyamoto.desktop-aio/` | Ryoku-style AIO desktop `service` plugin (weather, clock, date, cava spectrum, now-playing) |
 | [`miyamoto.lock`](miyamoto.lock) | `~/.config/omarchy/plugins/miyamoto.lock/` | Lock plugin re-skinned with the Ryoku qylock `clockwork/orbital` theme |
 | [`miyamoto.sakura-rain`](miyamoto.sakura-rain) | `~/.config/sakura-rain/`, `~/.config/quickshell/sakura-rain/`, `~/.config/systemd/user/sakura-rain.service`, `~/.local/bin/sakura-rain` | Sakura petal overlay (3D depth, window avoidance, TOML config). Install with `scripts/sakura-rain-install` |
 | [`nvim`](nvim) | `~/.config/nvim/` | Neovim configuration (Git submodule) |
@@ -140,19 +139,32 @@ The bar uses two small customizations; the lock screen is a separate plugin:
 
 See [the bar package README](miyamoto.bar/README.md) for standalone installation, updates, and removal.
 
-The setup helper installs the lock and desktop widget files but does not enable these optional services. Enable them separately if wanted:
+The setup helper installs the lock plugin and the standalone desktop widget. Fresh installs leave these optional services disabled; Desktop AIO migration preserves its previous enabled state. Enable them separately if wanted:
 
 ```bash
 omarchy plugin enable miyamoto.lock
-omarchy plugin enable miyamoto.desktop-aio
+omarchy plugin enable drunkleen.desktop-aio
 omarchy restart shell
 ```
 
 ### Desktop AIO
 
-[`miyamoto.desktop-aio`](miyamoto.desktop-aio) is a custom Omarchy `service` plugin that draws a Ryoku-style AIO card on a click-through bottom layer of the desktop (above the wallpaper, below windows): weather, a big weekday, a clock and date, a live `cava` spectrum, and an optional MPRIS now-playing line. Ink and accent follow the current theme, it never captures input, and fullscreen windows cover it.
+[Drunkleen Desktop AIO](https://github.com/drunkleen/drunkleen.omarchy-desktop-aio)
+is maintained in its own repository and installed as a Git-managed Omarchy plugin:
 
-It is enabled through `shell.json` and loaded in-process by `omarchy-shell` (no separate service). See [`miyamoto.desktop-aio/README.md`](miyamoto.desktop-aio/README.md) for its configuration and management, and [`NOTICE`](miyamoto.desktop-aio/.config/omarchy/plugins/miyamoto.desktop-aio/NOTICE) for its GPL-3.0 license.
+```bash
+./scripts/install-desktop-aio
+omarchy plugin enable drunkleen.desktop-aio
+omarchy restart shell
+```
+
+Setup installs it automatically; plugin updates run through `omarchy plugin update`.
+The installer preserves the old plugin's enabled state, migrates personal settings
+and saved placement, and backs up the old deployment outside this repository.
+Personal configuration lives at `~/.config/drunkleen.desktop-aio/config.toml`;
+placement lives at `~/.local/state/drunkleen.desktop-aio/placement.json`.
+Neither is part of the plugin Git checkout. See the standalone repository for
+configuration, dependencies, licensing, and removal instructions.
 
 ### Theme
 
@@ -255,7 +267,7 @@ source ~/.zshrc                    # reload Zsh after changing shell files
 For a custom set of packages that includes the theme, use the shared installer to get the theme backup and conflict checks:
 
 ```bash
-./scripts/stow-omarchy-packages miyamoto.bar miyamoto.lock miyamoto.desktop-aio leenium.omarchy
+./scripts/stow-omarchy-packages miyamoto.bar miyamoto.lock leenium.omarchy
 ```
 
 This helper only installs links. Use the full setup helper for cursor settings, service enablement, and shell configuration deployment.
@@ -292,7 +304,7 @@ cp "$HOME/.config/omarchy/shell.json.backup.<timestamp>.<pid>" ~/.config/omarchy
 omarchy restart shell
 ```
 
-Unlinking a plugin package does not remove its entries from the live `shell.json`. Switch to the built-in menu, workspace widget, or lock plugin and disable the desktop widget through Omarchy before unlinking their custom packages.
+Unlinking a plugin package does not remove its entries from the live `shell.json`. Switch to the built-in menu, workspace widget, or lock plugin before unlinking their custom packages. Remove Desktop AIO with `omarchy plugin remove drunkleen.desktop-aio`.
 
 ## Notes
 

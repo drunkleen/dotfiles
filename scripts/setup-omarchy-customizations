@@ -10,7 +10,9 @@ if ! pacman -Q capitaine-cursors >/dev/null 2>&1; then
 fi
 
 cd "$repo_dir"
-"$repo_dir/scripts/stow-omarchy-packages" hypr omarchy miyamoto.bar miyamoto.lock miyamoto.desktop-aio leenium.omarchy
+"$repo_dir/scripts/stow-omarchy-packages" hypr omarchy miyamoto.bar miyamoto.lock leenium.omarchy
+
+"$repo_dir/scripts/install-desktop-aio"
 
 # Runtime deps for the desktop widget (spectrum + fonts). Non-fatal: warn only.
 missing=()

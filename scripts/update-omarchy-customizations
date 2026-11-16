@@ -150,8 +150,13 @@ update_plugins() {
   cd "$repo_dir"
 
   if have omarchy; then
-    log "updating git-managed shell plugins"
-    run omarchy plugin update --yes || warn "omarchy plugin update failed"
+    if ((!no_pull)); then
+      run "$repo_dir/scripts/install-desktop-aio" || return 1
+      log "updating git-managed shell plugins"
+      run omarchy plugin update --yes || warn "omarchy plugin update failed"
+    else
+      log "skipping plugin network installs and updates (--no-pull)"
+    fi
   else
     warn "omarchy not found; skipping plugin update"
   fi

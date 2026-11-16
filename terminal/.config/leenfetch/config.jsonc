@@ -12,7 +12,8 @@
         // Select which distribution's ASCII art to display.
         // "auto" picks your current distro, any other value selects a specific artwork.
         // Options: "auto" or a distribution name
-        "ascii_distro": "auto",
+        "ascii_distro": "arch_small",
+        // "ascii_distro": "auto",
 
         // Choose the color palette for the ASCII art and color blocks.
         // Use "distro" for automatic colors or a comma-separated list of numbers.
@@ -35,15 +36,15 @@
 
         // Show the brand name of your CPU.
         // options: true or false
-        "cpu_brand": true,
+        "cpu_brand": false,
 
-        // Show the number of CPU cores.
-        // options: true or false
-        "cpu_cores": true,
+        // Show CPU core and thread counts.
+        // Options: "full", "core", "thread", "off"
+        "cpu_cores": "full",
 
         // Show the CPU frequency.
         // options: true or false
-        "cpu_frequency": true,
+        "cpu_frequency": false,
 
         // Show the current CPU speed.
         // options: true or false
@@ -51,15 +52,15 @@
 
         // Which temperature unit to use for CPU temperature, or off.
         // Options: "C", "F", "off"
-        "cpu_temp": "C",
+        "cpu_temp": "off",
 
         // Show the version of your desktop environment.
         // options: true or false
         "de_version": true,
 
-        // Show the GPU vendor name.
-        // options: true or false
-        "gpu_brand": true,
+        // AMD and NVIDIA GPU vendor label.
+        // Options: "full", "short", "off"
+        "gpu_brand": "off",
 
         // Which GPU to display.
         // Options: "all", "dedicated", "integrated"
@@ -67,7 +68,7 @@
 
         // Shorten the kernel output.
         // options: true or false
-        "kernel_shorthand": true,
+        "kernel_shorthand": false,
 
         // How much detail to show about your operating system.
         // Options: "name", "name_version", "name_arch", "name_model", "name_model_version", "name_model_arch", "name_model_version_arch"
@@ -130,13 +131,12 @@
         { "type": "custom", "format": "${reset}╭─────────────────────${c1}System${reset}─────────────────────╮" },
         { "type": "titles", "key": "${reset}│${c1} ╭:"},
         // { "type": "os", "key": "${c16}│${c1} ├OS"},
-        { "type": "custom", "format": "${reset}│${c1} ├: ${reset}Arch"},
         // { "type": "distro", "key": "${reset}│${c1} ├:"},
-        { "type": "kernel", "key": "${reset}│${c1} ├:"},
+        // { "type": "kernel", "key": "${reset}│${c1} ├:"},
         { "type": "packages", "key": "${reset}│${c1} ├󰏖:"},
         { "type": "shell", "key": "${reset}│ ${c1}├:"},
         { "type": "wm", "key": "${reset}│${c1} ├:"},
-        { "type": "de", "key": "${reset}│${c1} ├󰇄:"},
+        // { "type": "de", "key": "${reset}│${c1} ├󰇄:"},
         // { "type": "song", "key": "${reset}│${c1} ├"},
         { "type": "theme", "key": "${reset}│${c1} ├󰸌:"},
         { "type": "colors", "key": "${reset}│${c1} ╰:"},
@@ -146,8 +146,8 @@
         { "type": "model", "key": "${reset}│${c1} ╭:"},
         { "type": "cpu", "key": "${reset}│${c1} ├:"},
         { "type": "gpu", "key": "${reset}│${c1} ├:"},
-        { "type": "disk", "key": "${reset}│${c1} ├󰋊:"},
-        { "type": "resolution", "key": "${reset}│${c1} ├󱄄:"},
+        // { "type": "disk", "key": "${reset}│${c1} ├󰋊:"},
+        // { "type": "resolution", "key": "${reset}│${c1} ├󱄄:"},
         // { "type": "battery", "key": "${reset}│${c1} ├:"},
         { "type": "memory", "key": "${reset}│${c1} ╰:"},
         { "type": "custom", "format": "${reset}╰────────────────────────────────────────────────╯" },

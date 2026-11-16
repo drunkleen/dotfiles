@@ -162,10 +162,10 @@ The shared layer provides navigation and editor aliases, package/AUR helpers, Do
 
 ## Neovim
 
-[`nvim/.config/nvim`](nvim/.config/nvim) is a Git submodule pointing to [drunkleen/tired.nvim](https://github.com/drunkleen/tired.nvim). Keeping it as a submodule lets the config retain its own history while still installing through this repo. Update it to the latest tracked commit with:
+[`nvim/.config/tired.nvim`](nvim/.config/tired.nvim) is a Git submodule pointing to [drunkleen/tired.nvim](https://github.com/drunkleen/tired.nvim). The package also provides a `nvim → tired.nvim` link so Neovim loads this checkout from its standard `~/.config/nvim` location. Keeping it as a submodule lets the config retain its own history while still installing through this repo. Update it to the latest tracked commit with:
 
 ```bash
-git submodule update --remote nvim/.config/nvim
+git submodule update --remote nvim/.config/tired.nvim
 ```
 
 Review the resulting submodule commit change before committing it here.

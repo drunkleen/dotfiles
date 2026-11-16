@@ -1,5 +1,5 @@
-[submodule "nvim/.config/nvim"]
-	path = nvim/.config/nvim
+[submodule "nvim/.config/tired.nvim"]
+	path = nvim/.config/tired.nvim
 	url = https://github.com/drunkleen/tired.nvim.git
 	branch = master
 

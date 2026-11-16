@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Apply the preferred terminal through Omarchy; safe to rerun.
+set -euo pipefail
+
+if ! command -v ghostty >/dev/null 2>&1; then
+  echo 'Missing Ghostty; install it with: omarchy pkg add ghostty' >&2
+  exit 1
+fi
+if [[ $(omarchy default terminal) == ghostty ]]; then
+  echo 'Ghostty is already the default terminal.'
+  exit 0
+fi
+omarchy default terminal ghostty
+[[ $(omarchy default terminal) == ghostty ]] || { echo 'Terminal preference did not take effect.' >&2; exit 1; }
+echo 'Default terminal set to Ghostty.'

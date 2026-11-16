@@ -17,7 +17,7 @@ cd ~/.dotfiles
 Install the required packages (Omarchy already provides `quickshell` and `qt6-svg`):
 
 ```bash
-sudo pacman -S --needed git stow jq capitaine-cursors qt6-5compat cava inter-font ttf-material-symbols-variable
+sudo pacman -S --needed git stow firefox zsh ghostty jq capitaine-cursors qt6-5compat cava inter-font ttf-material-symbols-variable
 ```
 
 If you cloned without `--recurse-submodules`, initialize the submodules before installing:
@@ -33,7 +33,7 @@ cd ~/.dotfiles
 ./scripts/setup-omarchy-customizations
 ```
 
-The setup helper installs `hypr`, `omarchy`, `miyamoto.bar`, `miyamoto.lock`, `miyamoto.desktop-aio`, and `leenium.omarchy`. It checks Stow conflicts before linking, preserves an existing real Leenium theme directory as a timestamped backup, refreshes the font cache, enables the fcitx5 resume monitor, sets `capitaine-cursors` at size 24, and applies the Japanese menu button and workspace labels after installing the plugins. The bar helper backs up the live file, reads Omarchy’s installed bar defaults, and replaces only the menu/workspace widget IDs. The shell hot-reloads the result. Setup can be rerun after resolving a conflict or pulling changes.
+The setup helper installs `hypr`, `omarchy`, `miyamoto.bar`, `miyamoto.lock`, `miyamoto.desktop-aio`, and `leenium.omarchy`. It checks Stow conflicts before linking, preserves an existing real Leenium theme directory as a timestamped backup, refreshes the font cache, enables the fcitx5 resume monitor, sets `capitaine-cursors` at size 24, and applies the Japanese menu button and workspace labels after installing the plugins. The bar helper backs up the live file, reads Omarchy’s installed bar defaults, and replaces only the menu/workspace widget IDs. The shell hot-reloads the result. Setup also selects Ghostty as the default terminal and Zsh as the login shell. The `omarchy` package supplies the Firefox browser preference. Setup can be rerun after resolving a conflict or pulling changes. Log out and back in after changing the login shell.
 
 Install any additional packages you want separately:
 
@@ -69,6 +69,41 @@ Only move paths reported as conflicts; keep their backups until you have checked
 
 For the specific `leenium.omarchy` theme conflict, rerun setup directly. It preserves the installed directory at `~/.config/omarchy/themes/leenium.omarchy.backup.<timestamp>.<pid>` before linking the repository theme. If the conflict check fails elsewhere, it restores the original theme directory.
 
+### Default browser, terminal, and shell
+
+| Preference | Default | How setup applies it |
+| --- | --- | --- |
+| Browser | Firefox | Stow links [`omarchy/.config/mimeapps.list`](omarchy/.config/mimeapps.list) |
+| Terminal | Ghostty | Stow links [`omarchy/.config/xdg-terminals.list`](omarchy/.config/xdg-terminals.list), then [`scripts/setup-default-terminal`](scripts/setup-default-terminal) selects Ghostty through Omarchy |
+| Login shell | Zsh | [`scripts/setup-default-shell`](scripts/setup-default-shell) updates the account's login shell |
+
+Run setup as your normal desktop user. Both preference helpers require their application to be installed and skip the change when it is already applied. The shell helper also checks `/etc/shells` and requests authentication when needed. Log out and back in after changing the login shell; existing shells continue running until closed.
+
+To apply individual preferences on an existing installation:
+
+```bash
+cd ~/.dotfiles
+omarchy default browser firefox
+./scripts/setup-default-terminal
+./scripts/setup-default-shell
+```
+
+Verify the saved settings:
+
+```bash
+omarchy default browser                       # firefox
+omarchy default terminal                      # ghostty
+getent passwd "$(id -un)" | cut -d: -f7        # /usr/bin/zsh
+```
+
+Keep both preference files in the repository when committing or restoring dotfiles. The installed symlinks depend on them; missing targets can prevent the menu from saving preferences or cause fallback applications to open. Browser and terminal preference changes made through Omarchy save into these repository files. Review them before committing:
+
+```bash
+git diff -- omarchy/.config/mimeapps.list omarchy/.config/xdg-terminals.list
+```
+
+If an existing installation has regular files at `~/.config/mimeapps.list` or `~/.config/xdg-terminals.list`, review and merge any settings you want to keep into the corresponding repository files, back up the live files, and run `stow omarchy` to install the links. If a link is broken, restore its missing repository target from Git before rerunning setup.
+
 ## Packages
 
 Each package mirrors its destination below `$HOME`. The repo's [`.stowrc`](.stowrc) sets the Stow target to `~/` and enables restowing.
@@ -83,7 +118,7 @@ Each package mirrors its destination below `$HOME`. The repo's [`.stowrc`](.stow
 | [`miyamoto.lock`](miyamoto.lock) | `~/.config/omarchy/plugins/miyamoto.lock/` | Lock plugin re-skinned with the Ryoku qylock `clockwork/orbital` theme |
 | [`miyamoto.sakura-rain`](miyamoto.sakura-rain) | `~/.config/sakura-rain/`, `~/.config/quickshell/sakura-rain/`, `~/.config/systemd/user/sakura-rain.service`, `~/.local/bin/sakura-rain` | Sakura petal overlay (3D depth, window avoidance, TOML config). Install with `scripts/sakura-rain-install` |
 | [`nvim`](nvim) | `~/.config/nvim/` | Neovim configuration (Git submodule) |
-| [`omarchy`](omarchy) | `~/.config/gtk-*`, `~/.icons/`, `~/.config/systemd/user/`, `~/.local/bin/` | GTK settings, cursor, and the fcitx5 resume service |
+| [`omarchy`](omarchy) | `~/.config/{gtk-*,mimeapps.list,xdg-terminals.list,systemd/user/}`, `~/.icons/`, `~/.local/bin/` | GTK settings, cursor, Firefox/Ghostty preferences, and the fcitx5 resume service |
 | [`terminal`](terminal) | `~/.zshrc`, `~/.gitconfig`, `~/.config/{terminal,alacritty,foot,ghostty,kitty,btop,leenfetch,tmux}/` | Zsh setup, shared shell utilities, terminal emulators, btop, Leenfetch, and tmux |
 | [`voxtype`](voxtype) | `~/.config/voxtype/` | Whisper-based dictation daemon and hotkey tooling |
 
@@ -158,6 +193,8 @@ terminal/.config/terminal/
     └── init.zsh
 ```
 
+The desktop setup helper selects Ghostty as the default terminal and Zsh as the login shell; see [default browser, terminal, and shell](#default-browser-terminal-and-shell) for standalone commands and verification. Install the optional `terminal` Stow package above to use this repository's Zsh and terminal configuration. Changing the login shell leaves scripts with explicit Bash shebangs running under Bash.
+
 The shared layer provides navigation and editor aliases, package/AUR helpers, Docker helpers, project initializers, network utilities, notifications, fzf helpers, and the `shellhelp` command. Zsh adds history, completion, Starship, zoxide, fzf, autosuggestions, syntax highlighting, and Omarchy's environment bootstrap. Machine-specific values go in a local env file based on [`terminal/.env.example`](terminal/.env.example) — never commit tokens or credentials.
 
 ### Terminal emulators and tools
@@ -199,6 +236,8 @@ cd ~/.dotfiles
 ```
 
 New packages are detected and stowed automatically, and any new stow-managed user service is enabled. The update helper uses the same Stow conflict checks and theme backup handling as setup; a Stow conflict stops the update before shell settings are applied. Review detected packages before running it, since it includes optional packages too. The bar helper enables only its two widgets; the script reports other installed plugins that are not enabled. Enable optional services explicitly, or use `--enable-new` to enable all reported plugins.
+
+The update helper does not run the default-terminal or login-shell helpers. Run the full setup helper or the individual preference helpers above to reapply Ghostty and Zsh. Restowing `omarchy` installs the browser and terminal preference files.
 
 Useful flags: `--no-pull` (skip network/submodule updates), `--dry-run` (print actions only), `--enable-new` (auto-enable reported plugins).
 

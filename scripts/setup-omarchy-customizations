@@ -40,4 +40,7 @@ else
   printf '%s\n' 'Omarchy shell not found; run scripts/miyamoto-bar apply after installing Omarchy.'
 fi
 
-printf '%s\n' 'Omarchy bar, lock, desktop widget, theme, font, Hyprland config, and resume input fix installed.'
+"$repo_dir/scripts/setup-default-terminal"
+"$repo_dir/scripts/setup-default-shell"
+
+printf '%s\n' 'Omarchy bar, lock, desktop widget, theme, font, Hyprland config, resume input fix, Ghostty default terminal, and Zsh login shell installed.'

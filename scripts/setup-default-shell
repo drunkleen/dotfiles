@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Set the invoking user's login shell to Zsh; safe to rerun.
+set -euo pipefail
+
+if ((EUID == 0)); then
+  echo 'Run this script as your normal desktop user.' >&2
+  exit 1
+fi
+
+if ! command -v zsh >/dev/null 2>&1; then
+  echo 'Missing Zsh; install it with: omarchy pkg add zsh' >&2
+  exit 1
+fi
+zsh_path="$(command -v zsh)"
+if ! grep -Fxq "$zsh_path" /etc/shells; then
+  printf 'Zsh is not listed as a valid login shell: %s\n' "$zsh_path" >&2
+  exit 1
+fi
+user_name="$(id -un)"
+current_shell="$(getent passwd "$user_name" | cut -d: -f7)"
+if [[ $current_shell == "$zsh_path" ]]; then
+  echo 'Zsh is already the default login shell.'
+  exit 0
+fi
+
+if [[ -t 0 ]]; then
+  chsh -s "$zsh_path"
+else
+  # A graphical authentication prompt is required without an interactive terminal.
+  pkexec chsh -s "$zsh_path" "$user_name"
+fi
+
+current_shell="$(getent passwd "$user_name" | cut -d: -f7)"
+[[ $current_shell == "$zsh_path" ]] || { echo 'Login shell change did not take effect.' >&2; exit 1; }
+echo 'Default login shell set to Zsh. Log out and back in to update the desktop session.'

@@ -3,8 +3,3 @@
 	url = https://github.com/drunkleen/tired.nvim.git
 	branch = master
 
-[submodule "omarchy/.config/omarchy/themes/leenium.omarchy"]
-	path = leenium.omarchy/.config/omarchy/themes/leenium.omarchy
-	url = https://github.com/drunkleen/leenium.omarchy.git
-	branch = master
-

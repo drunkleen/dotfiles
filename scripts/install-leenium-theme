@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Install and apply Leenium directly through Omarchy.
+set -euo pipefail
+exec omarchy theme install https://github.com/drunkleen/leenium.omarchy

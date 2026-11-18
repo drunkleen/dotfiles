@@ -1,23 +1,7 @@
 #!/usr/bin/env bash
-# Preflight all packages; preserve an installed copy of our theme before linking.
+# Check all selected packages for conflicts before linking any of them.
 set -euo pipefail
 repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_dir"
-theme="$HOME/.config/omarchy/themes/leenium.omarchy"
-backup=""
-restore_theme() {
-  if [[ -n $backup && ! -e $theme && ! -L $theme ]]; then
-    mv -- "$backup" "$theme"
-  fi
-}
-trap restore_theme EXIT
-for package in "$@"; do
-  if [[ $package == leenium.omarchy && -d $theme && ! -L $theme ]]; then
-    backup="${theme}.backup.$(date +%Y%m%d-%H%M%S).$$"
-    mv -- "$theme" "$backup"
-    printf 'Preserved installed theme: %s\n' "$backup"
-  fi
-done
 stow --dir="$repo_dir" --target="$HOME" --simulate "$@"
 stow --dir="$repo_dir" --target="$HOME" "$@"
-trap - EXIT

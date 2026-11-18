@@ -33,7 +33,7 @@ cd ~/.dotfiles
 ./scripts/setup-omarchy-customizations
 ```
 
-The setup helper installs `hypr`, `omarchy`, `miyamoto.bar`, `miyamoto.lock`, and `leenium.omarchy`, and installs [Drunkleen Desktop AIO](https://github.com/drunkleen/drunkleen.omarchy-desktop-aio) through `omarchy plugin add`. It checks Stow conflicts before linking, preserves an existing real Leenium theme directory as a timestamped backup, refreshes the font cache, enables the fcitx5 resume monitor, sets `capitaine-cursors` at size 24, and applies the Japanese menu button and workspace labels after installing the plugins. The bar helper backs up the live file, reads Omarchy’s installed bar defaults, and replaces only the menu/workspace widget IDs. The shell hot-reloads the result. Setup also selects Ghostty as the default terminal and Zsh as the login shell. The `omarchy` package supplies the Firefox browser preference. Setup can be rerun after resolving a conflict or pulling changes. Log out and back in after changing the login shell.
+The setup helper installs `hypr`, `omarchy`, `miyamoto.bar`, and `miyamoto.lock`, and installs [Desktop AIO](https://github.com/drunkleen/drunkleen.omarchy-desktop-aio) through `omarchy plugin add`. It checks Stow conflicts before linking, refreshes the font cache, enables the fcitx5 resume monitor, sets `capitaine-cursors` at size 24, and applies the Japanese menu button and workspace labels after installing the plugins. The bar helper backs up the live file, reads Omarchy’s installed bar defaults, and replaces only the menu/workspace widget IDs. The shell hot-reloads the result. Setup also selects Ghostty as the default terminal and Zsh as the login shell. The `omarchy` package supplies the Firefox browser preference. Setup can be rerun after resolving a conflict or pulling changes. Log out and back in after changing the login shell.
 
 Install any additional packages you want separately:
 
@@ -43,10 +43,10 @@ stow fontconfig terminal nvim voxtype              # install
 fc-cache -f ~/.local/share/fonts
 ```
 
-The setup helper installs the theme files; to select the theme, run:
+The setup helper installs and applies Leenium from its separate repository through Omarchy. To install or update just the theme, run:
 
 ```bash
-omarchy theme set leenium.omarchy
+./scripts/install-leenium-theme
 ```
 
 Validate the Hyprland configuration after installation:
@@ -67,7 +67,6 @@ mv ~/.config/hypr ~/.config/hypr.pre-dotfiles-"$(date +%Y%m%d-%H%M%S)"
 
 Only move paths reported as conflicts; keep their backups until you have checked the installed configuration. Do not use `stow --adopt` to fix conflicts: it moves existing target files into the repository and can replace the configurations you intended to install.
 
-For the specific `leenium.omarchy` theme conflict, rerun setup directly. It preserves the installed directory at `~/.config/omarchy/themes/leenium.omarchy.backup.<timestamp>.<pid>` before linking the repository theme. If the conflict check fails elsewhere, it restores the original theme directory.
 
 ### Default browser, terminal, and shell
 
@@ -112,10 +111,8 @@ Each package mirrors its destination below `$HOME`. The repo's [`.stowrc`](.stow
 | --- | --- | --- |
 | [`fontconfig`](fontconfig) | `~/.config/fontconfig/` | Font-family defaults and fallbacks |
 | [`hypr`](hypr) | `~/.config/hypr/` | Omarchy-only Hyprland (Lua) configuration |
-| [`leenium.omarchy`](leenium.omarchy) | `~/.config/omarchy/themes/leenium.omarchy/` | Leenium Omarchy theme (Git submodule) |
 | [`miyamoto.bar`](miyamoto.bar) | `~/.config/omarchy/plugins/miyamoto.{menu,workspaces}/` | 宮本 menu button and Japanese workspace labels |
 | [`miyamoto.lock`](miyamoto.lock) | `~/.config/omarchy/plugins/miyamoto.lock/` | Lock plugin re-skinned with the Ryoku qylock `clockwork/orbital` theme |
-| [`miyamoto.sakura-rain`](miyamoto.sakura-rain) | `~/.config/sakura-rain/`, `~/.config/quickshell/sakura-rain/`, `~/.config/systemd/user/sakura-rain.service`, `~/.local/bin/sakura-rain` | Sakura petal overlay (3D depth, window avoidance, TOML config). Install with `scripts/sakura-rain-install` |
 | [`nvim`](nvim) | `~/.config/nvim/` | Neovim configuration (Git submodule) |
 | [`omarchy`](omarchy) | `~/.config/{gtk-*,mimeapps.list,xdg-terminals.list,systemd/user/}`, `~/.icons/`, `~/.local/bin/` | GTK settings, cursor, Firefox/Ghostty preferences, and the fcitx5 resume service |
 | [`terminal`](terminal) | `~/.zshrc`, `~/.gitconfig`, `~/.config/{terminal,alacritty,foot,ghostty,kitty,btop,leenfetch,tmux}/` | Zsh setup, shared shell utilities, terminal emulators, btop, Leenfetch, and tmux |
@@ -168,7 +165,14 @@ configuration, dependencies, licensing, and removal instructions.
 
 ### Theme
 
-The [Leenium Omarchy theme](https://github.com/drunkleen/leenium.omarchy) is a Git submodule in its own [`leenium.omarchy`](leenium.omarchy) package, installed at `~/.config/omarchy/themes/leenium.omarchy`.
+The theme is maintained outside this dotfiles repository. Run
+[`scripts/install-leenium-theme`](scripts/install-leenium-theme) to execute:
+
+```bash
+omarchy theme install https://github.com/drunkleen/leenium.omarchy
+```
+
+Omarchy installs the theme in `~/.config/omarchy/themes/leenium.omarchy` and applies it. There is no theme submodule or Stow package in this repository.
 
 ### Cursor
 
@@ -178,12 +182,12 @@ The desktop uses the dark `capitaine-cursors` variant at size 24, applied throug
 
 [`omarchy-fcitx5-resume.service`](omarchy/.config/systemd/user/omarchy-fcitx5-resume.service) runs a small D-Bus monitor that restarts Omarchy's managed fcitx5 service after resume, avoiding stale Wayland input grabs that can leave the lock screen unable to accept a password after suspend. It uses systemd's `%h` specifier, so no username is hard-coded.
 
-### Sakura Rain
+### Ambient effects
 
-A petal overlay on the wallpaper layer. Install and uninstall with
-`scripts/sakura-rain-install` and `scripts/sakura-rain-uninstall`. Commands,
-settings, presets and troubleshooting are in
-[`miyamoto.sakura-rain/README.md`](miyamoto.sakura-rain/README.md).
+Sakura petals, leaves, rain, and snow are provided by
+[Desktop AIO](https://github.com/drunkleen/drunkleen.omarchy-desktop-aio).
+Install it with [`scripts/install-desktop-aio`](scripts/install-desktop-aio),
+then right-click the widget to configure Ambient Effects.
 
 ## Shell environment
 
@@ -267,7 +271,7 @@ source ~/.zshrc                    # reload Zsh after changing shell files
 For a custom set of packages that includes the theme, use the shared installer to get the theme backup and conflict checks:
 
 ```bash
-./scripts/stow-omarchy-packages miyamoto.bar miyamoto.lock leenium.omarchy
+./scripts/stow-omarchy-packages miyamoto.bar miyamoto.lock
 ```
 
 This helper only installs links. Use the full setup helper for cursor settings, service enablement, and shell configuration deployment.

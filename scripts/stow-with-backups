@@ -37,6 +37,8 @@ def main():
         def scan(source, relative, blocked=False):
             if any(pattern.search(str(relative)) for pattern in ignored):
                 return
+            if source.is_symlink() and Path(os.readlink(source)).is_absolute():
+                raise ValueError(f'Absolute source symlink cannot be stowed: {source} -> {os.readlink(source)}')
             destination = target / relative
             directory = source.is_dir() and not source.is_symlink()
             if not directory:
@@ -46,8 +48,10 @@ def main():
             present = os.path.lexists(destination)
             if not blocked and present:
                 if destination.is_symlink() and destination.resolve() == source.resolve():
-                    return
-                if destination.is_symlink() or not directory or not destination.is_dir():
+                    if not directory:
+                        return
+                    blocked = True
+                if not blocked and (destination.is_symlink() or not directory or not destination.is_dir()):
                     if str(relative) in protected:
                         raise ValueError(f'Refusing to move shared root {destination}; resolve its symlink first')
                     conflicts[destination] = None
@@ -68,7 +72,7 @@ def main():
             suffix += 1
         conflicts[path] = backup
         print(f'Backup: {path} -> {backup}', flush=True)
-    command = ['stow', '--restow', '--no-folding', '--dir=' + str(repo), '--target=' + str(target)]
+    command = ['stow', '--restow', '--no-folding', '--verbose=0', '--dir=' + str(repo), '--target=' + str(target)]
     print('Stow packages: ' + ', '.join(args.packages), flush=True)
     if args.dry_run:
         return

@@ -334,3 +334,14 @@ python3 -m unittest discover -s tests -p 'test_*.py' -v
 bash -n scripts/setup-omarchy-customizations
 shellcheck scripts/setup-omarchy-customizations
 ```
+
+### Laptop setup and old checkouts
+
+Pull the current `omarchy` branch before running setup. Retired
+`leenium.omarchy` and `miyamoto.sakura-rain` directories left behind by Git are
+ignored by package detection. Leenium is installed separately through Omarchy.
+
+The btop `current.theme` link is created by `scripts/setup-btop-theme` using
+the current user's XDG paths after Stow runs; no username-specific source link
+is stored in Git. Absolute source symlinks are rejected before moving backups.
+A failed Stow simulation stops setup before any theme or boot installer runs.

@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+"""Create btop's machine-local current-theme link outside the Stow package."""
+import datetime
+import os
+from pathlib import Path
+
+repo = Path(__file__).resolve().parent.parent
+config = Path(os.environ.get('XDG_CONFIG_HOME', str(Path.home() / '.config')))
+state = Path(os.environ.get('XDG_STATE_HOME', str(Path.home() / '.local/state')))
+directory = config / 'btop/themes'
+if directory.resolve().is_relative_to(repo):
+    raise SystemExit('btop config still points into dotfiles; run the unified setup to unfold it first')
+directory.mkdir(parents=True, exist_ok=True)
+link = directory / 'current.theme'
+expected = state / 'omarchy/current/theme/btop.theme'
+if link.is_symlink() and link.resolve() == expected.resolve():
+    print('btop: current theme link already configured')
+else:
+    if os.path.lexists(link):
+        stamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+        backup = link.with_name(link.name + '-backup-' + stamp)
+        suffix = 1
+        while os.path.lexists(backup):
+            backup = link.with_name(link.name + '-backup-' + stamp + f'-{suffix}')
+            suffix += 1
+        link.rename(backup)
+        print(f'btop: backup -> {backup}')
+    link.symlink_to(expected)
+    print(f'btop: {link} -> {expected}')

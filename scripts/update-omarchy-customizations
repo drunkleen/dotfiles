@@ -48,7 +48,7 @@ detect_packages() {
   for dir in "$repo_dir"/*/; do
     [[ -d $dir ]] || continue
     base="$(basename "$dir")"
-    [[ $base == scripts ]] && continue
+    [[ $base == scripts || $base == leenium.omarchy || $base == miyamoto.sakura-rain ]] && continue
     if [[ -e $dir/.config || -e $dir/.local || -e $dir/.icons ||
           -e $dir/.zshrc || -e $dir/.gitconfig ]]; then
       printf '%s\n' "$base"
@@ -107,6 +107,7 @@ update_dotfiles() {
   else
     log "stowing packages: ${packages[*]}"
     run "$repo_dir/scripts/stow-omarchy-packages" "${packages[@]}" || return 1
+    run "$repo_dir/scripts/setup-btop-theme" || return 1
   fi
 
   if have fc-cache; then

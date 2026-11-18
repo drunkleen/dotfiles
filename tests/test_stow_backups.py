@@ -69,6 +69,22 @@ class Backups(unittest.TestCase):
         self.assertEqual(self.target.read_text(), 'old')
         self.assertEqual(list(self.target.parent.glob('*-backup-*')), [])
 
+    def test_absolute_source_symlink_fails_before_any_backup(self):
+        self.target.write_text('old')
+        (self.source.parent / 'invalid.theme').symlink_to('/home/other-user/theme')
+        result = self.run_helper(success=False)
+        self.assertIn('Absolute source symlink cannot be stowed', result.stderr)
+        self.assertEqual(self.target.read_text(), 'old')
+        self.assertEqual(list(self.target.parent.glob('*-backup-*')), [])
+
+    def test_absolute_source_link_is_checked_inside_existing_folded_directory(self):
+        self.target.parent.rmdir()
+        self.target.parent.symlink_to(self.source.parent)
+        (self.source.parent / 'invalid.theme').symlink_to('/home/other-user/theme')
+        result = self.run_helper(success=False)
+        self.assertIn('Absolute source symlink cannot be stowed', result.stderr)
+        self.assertTrue(self.target.parent.is_symlink())
+
     def test_stow_failure_restores_original(self):
         self.target.write_text('old')
         binary = self.root / 'bin'

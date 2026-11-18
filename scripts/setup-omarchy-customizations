@@ -19,6 +19,7 @@ esac
 
 packages=()
 for directory in "$repo_dir"/*/; do
+  case "$(basename "$directory")" in leenium.omarchy|miyamoto.sakura-rain) continue ;; esac
   if [[ -e $directory/.config || -e $directory/.local || -e $directory/.icons ||
         -e $directory/.zshrc || -e $directory/.gitconfig ]]; then
     packages+=("$(basename "$directory")")
@@ -44,6 +45,7 @@ else
   "$repo_dir/scripts/stow-with-backups" "${packages[@]}"
 fi
 
+run "$repo_dir/scripts/setup-btop-theme"
 run "$repo_dir/scripts/install-leenium-theme"
 run "$repo_dir/scripts/miyamoto-bar" apply
 

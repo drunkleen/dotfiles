@@ -17,7 +17,7 @@ cd ~/.dotfiles
 Install the required packages (Omarchy already provides `quickshell` and `qt6-svg`):
 
 ```bash
-sudo pacman -S --needed git stow firefox zsh ghostty jq capitaine-cursors qt6-5compat cava inter-font ttf-material-symbols-variable
+sudo pacman -S --needed git stow python firefox zsh ghostty jq capitaine-cursors qt6-5compat cava inter-font ttf-material-symbols-variable
 ```
 
 If you cloned without `--recurse-submodules`, initialize the submodules before installing:
@@ -33,7 +33,17 @@ cd ~/.dotfiles
 ./scripts/setup-omarchy-customizations
 ```
 
-The setup helper installs `hypr`, `omarchy`, `miyamoto.bar`, and `miyamoto.lock`, and installs [Desktop AIO](https://github.com/drunkleen/drunkleen.omarchy-desktop-aio) through `omarchy plugin add`. It checks Stow conflicts before linking, refreshes the font cache, enables the fcitx5 resume monitor, sets `capitaine-cursors` at size 24, and applies the Japanese menu button and workspace labels after installing the plugins. The bar helper backs up the live file, reads Omarchy’s installed bar defaults, and replaces only the menu/workspace widget IDs. The shell hot-reloads the result. Setup also selects Ghostty as the default terminal and Zsh as the login shell. The `omarchy` package supplies the Firefox browser preference. Setup can be rerun after resolving a conflict or pulling changes. Log out and back in after changing the login shell.
+The setup helper detects every top-level Stow package and backs up conflicting destination files or links as `<name>-backup-YYYYMMDD-HHMMSS` before linking the repository versions. It leaves already-correct links and unrelated files intact, and never overwrites an existing backup. It then installs and applies Leenium through Omarchy, applies the bar, clones and installs Leenium Limine in a private temporary directory, installs the bundled `miyamoto.plymouth` theme, and enables `miyamoto.lock`. Desktop AIO installation and the existing font, cursor, resume-service, Ghostty, and Zsh setup follow.
+
+Preview the full plan without changing files or running installers:
+
+```bash
+./scripts/setup-omarchy-customizations --dry-run
+```
+
+Run the actual setup **as your normal desktop user** in an unlocked graphical session. It requests sudo for the boot themes. Required tools include Python 3, GNU Stow, Git, jq, Omarchy, Limine (`limine` and `limine-update`), and Plymouth. The existing Limine/Plymouth configuration and any installed `miyamoto` Plymouth theme are backed up before installation. The Limine installer regenerates boot entries; Plymouth rebuilds initramfs. The script stops on errors, removes its temporary clone, and does not reboot or open the lock screen. Review backups before deleting them.
+
+The Stow backup helper restores moved originals if its preflight fails. If a partially completed operation creates a destination that cannot safely be replaced, it prints the remaining backup path for manual recovery. Foreign symlinks at shared roots such as `~/.config` must be resolved explicitly. Setup also selects Ghostty as the default terminal and Zsh as the login shell; log out and back in after changing the login shell.
 
 Install any additional packages you want separately:
 
@@ -58,7 +68,7 @@ hyprctl configerrors
 
 ### Resolving Stow conflicts
 
-Stow refuses to replace existing files. A conflict aborts the link operation, so resolve it before applying the bar configuration. For each conflicting path, inspect it, move it to a backup, and rerun setup. For example, if your existing Hyprland directory conflicts:
+The unified setup automatically backs up conflicts. Direct Stow commands and the update helper remain strict: a conflict aborts linking. To resolve one manually, inspect the conflicting path and move it to a backup. For example, if your existing Hyprland directory conflicts:
 
 ```bash
 mv ~/.config/hypr ~/.config/hypr.pre-dotfiles-"$(date +%Y%m%d-%H%M%S)"
@@ -136,7 +146,7 @@ The bar uses two small customizations; the lock screen is a separate plugin:
 
 See [the bar package README](miyamoto.bar/README.md) for standalone installation, updates, and removal.
 
-The setup helper installs the lock plugin and the standalone desktop widget. Fresh installs leave these optional services disabled; Desktop AIO migration preserves its previous enabled state. Enable them separately if wanted:
+The unified setup enables the lock plugin. Desktop AIO migration preserves its previous enabled state; fresh installations can enable the desktop widget separately:
 
 ```bash
 omarchy plugin enable miyamoto.lock
@@ -251,7 +261,7 @@ cd ~/.dotfiles
 ./scripts/update-omarchy-customizations theme      # update + refresh + re-apply the theme
 ```
 
-New packages are detected and stowed automatically, and any new stow-managed user service is enabled. The update helper uses the same Stow conflict checks and theme backup handling as setup; a Stow conflict stops the update before shell settings are applied. Review detected packages before running it, since it includes optional packages too. The bar helper enables only its two widgets; the script reports other installed plugins that are not enabled. Enable optional services explicitly, or use `--enable-new` to enable all reported plugins.
+New packages are detected and stowed automatically, and any new stow-managed user service is enabled. The update helper uses strict Stow conflict checks; a conflict stops the update before shell settings are applied. Use the unified setup helper when you want automatic conflict backups and boot-theme installation. Review detected packages before running it, since it includes optional packages too. The bar helper enables only its two widgets; the script reports other installed plugins that are not enabled. Enable optional services explicitly, or use `--enable-new` to enable all reported plugins.
 
 The update helper does not run the default-terminal or login-shell helpers. Run the full setup helper or the individual preference helpers above to reapply Ghostty and Zsh. Restowing `omarchy` installs the browser and terminal preference files.
 
@@ -316,3 +326,11 @@ Unlinking a plugin package does not remove its entries from the live `shell.json
 - The `hypr` package is supported only on Omarchy.
 - Omarchy files under `/usr/share/omarchy` are dependencies, not vendored files; my customizations stay under `~/.config` and `~/.local`.
 - The repository does not currently declare a separate license.
+
+### Setup validation
+
+```bash
+python3 -m unittest discover -s tests -p 'test_*.py' -v
+bash -n scripts/setup-omarchy-customizations
+shellcheck scripts/setup-omarchy-customizations
+```

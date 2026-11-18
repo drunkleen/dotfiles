@@ -4,20 +4,79 @@ set -euo pipefail
 
 repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 
-if ! pacman -Q capitaine-cursors >/dev/null 2>&1; then
-  printf '%s\n' 'Missing package: install it with sudo pacman -S capitaine-cursors' >&2
-  exit 1
+dry_run=false
+case "${1:-}" in
+  --dry-run) dry_run=true ;;
+  --help|-h)
+    echo 'Usage: scripts/setup-omarchy-customizations [--dry-run]'
+    echo 'Back up conflicts, stow all packages, then apply theme, bar, Limine, Plymouth and lock.'
+    exit 0 ;;
+  "") ;;
+  *) echo "Unknown option: $1" >&2; exit 2 ;;
+esac
+(( $# <= 1 )) || { echo 'Too many arguments' >&2; exit 2; }
+(( EUID != 0 )) || { echo 'Run as your normal desktop user; sudo is requested for boot themes only.' >&2; exit 1; }
+
+packages=()
+for directory in "$repo_dir"/*/; do
+  if [[ -e $directory/.config || -e $directory/.local || -e $directory/.icons ||
+        -e $directory/.zshrc || -e $directory/.gitconfig ]]; then
+    packages+=("$(basename "$directory")")
+  fi
+done
+((${#packages[@]})) || { echo 'No Stow packages found' >&2; exit 1; }
+
+run() {
+  if $dry_run; then printf '[dry-run] '; printf '%q ' "$@"; printf '\n'; else "$@"; fi
+}
+
+if $dry_run; then
+  "$repo_dir/scripts/stow-with-backups" --dry-run "${packages[@]}"
+else
+  for tool in stow python3 git sudo omarchy jq fc-cache gsettings limine limine-update plymouth-set-default-theme; do
+    command -v "$tool" >/dev/null || { echo "Missing prerequisite: $tool" >&2; exit 1; }
+  done
+  pacman -Q capitaine-cursors >/dev/null || { echo 'Install capitaine-cursors first.' >&2; exit 1; }
+  [[ -f $repo_dir/miyamoto.lock/.config/omarchy/plugins/miyamoto.lock/theme/font/Outfit-Black.ttf ]] || {
+    echo 'Lock/Plymouth font missing; initialize repository submodules first.' >&2; exit 1;
+  }
+  sudo -v
+  "$repo_dir/scripts/stow-with-backups" "${packages[@]}"
 fi
 
-cd "$repo_dir"
-"$repo_dir/scripts/stow-omarchy-packages" hypr omarchy miyamoto.bar miyamoto.lock
+run "$repo_dir/scripts/install-leenium-theme"
+run "$repo_dir/scripts/miyamoto-bar" apply
 
-"$repo_dir/scripts/install-leenium-theme"
-"$repo_dir/scripts/install-desktop-aio"
+# Keep the clone private to this invocation; remove it on success or failure.
+if $dry_run; then
+  echo '[dry-run] Clone https://github.com/drunkleen/leenium.limine.git into a private temporary directory'
+  echo '[dry-run] Back up existing Limine/Plymouth configs and theme, then sudo ./install.sh from that clone'
+  echo '[dry-run] sudo miyamoto.plymouth/install.sh (selects Plymouth and rebuilds initramfs)'
+else
+  temporary=$(mktemp -d -t leenium-setup.XXXXXXXX)
+  trap 'rm -rf -- "$temporary"' EXIT
+  git clone -- https://github.com/drunkleen/leenium.limine.git "$temporary/leenium.limine"
+  stamp=$(date +%Y%m%d-%H%M%S).$$
+  for file in /boot/limine.conf /etc/default/limine /etc/plymouth/plymouthd.conf /usr/share/plymouth/themes/miyamoto; do
+    if sudo test -e "$file"; then
+      sudo cp -a -- "$file" "$file-backup-$stamp"
+      echo "Boot config backup: $file-backup-$stamp"
+    fi
+  done
+  (cd "$temporary/leenium.limine" && sudo ./install.sh)
+  sudo bash "$repo_dir/miyamoto.plymouth/install.sh"
+fi
+run omarchy plugin enable miyamoto.lock
+run "$repo_dir/scripts/install-desktop-aio"
+
+if $dry_run; then
+  echo '[dry-run] Finish font cache, cursor, resume service, terminal and login-shell preferences'
+  exit 0
+fi
 
 # Runtime deps for the desktop widget (spectrum + fonts). Non-fatal: warn only.
 missing=()
-for pkg in cava inter-font ttf-material-symbols-variable; do
+for pkg in cava inter-font ttf-material-symbols-variable curl libpulse; do
   pacman -Q "$pkg" >/dev/null 2>&1 || missing+=("$pkg")
 done
 if ((${#missing[@]})); then
@@ -34,13 +93,6 @@ gsettings set org.gnome.desktop.interface cursor-size 24
 
 if command -v hyprctl >/dev/null 2>&1; then
   hyprctl setcursor capitaine-cursors 24
-fi
-
-if command -v omarchy-shell >/dev/null 2>&1; then
-  # Read the installed stock bar defaults and replace only its two widgets.
-  "$repo_dir/scripts/miyamoto-bar" apply
-else
-  printf '%s\n' 'Omarchy shell not found; run scripts/miyamoto-bar apply after installing Omarchy.'
 fi
 
 "$repo_dir/scripts/setup-default-terminal"

@@ -1,0 +1,98 @@
+#!/usr/bin/env python3
+"""Back up conflicting Stow destinations; preserve shared directories and owned links."""
+import argparse
+import datetime
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--dry-run', action='store_true')
+    parser.add_argument('--repo', type=Path, default=Path(__file__).resolve().parent.parent)
+    parser.add_argument('--target', type=Path, default=Path.home())
+    parser.add_argument('packages', nargs='+')
+    args = parser.parse_args()
+    repo, target = args.repo.resolve(), args.target.absolute()
+    protected = {'.config', '.local', '.local/bin', '.local/share'}
+    conflicts, destinations = {}, {}
+    for package in args.packages:
+        if Path(package).name != package or not (repo / package).is_dir():
+            raise ValueError(f'Invalid package: {package}')
+        package_root = repo / package
+        ignore_file = package_root / '.stow-local-ignore'
+        global_ignore = target / '.stow-global-ignore'
+        patterns = [r'(^|/)\.git(/|$)', r'(^|/)\.stow-local-ignore$', r'(^|/)\.stow-global-ignore$']
+        selected_ignore = ignore_file if ignore_file.exists() else global_ignore
+        if selected_ignore.exists():
+            patterns += [line.split('#', 1)[0].strip() for line in selected_ignore.read_text().splitlines()
+                         if line.split('#', 1)[0].strip()]
+        else:
+            patterns += [r'(^|/)(README.*|LICENSE.*|COPYING|\.gitignore|\.gitmodules)$']
+        ignored = [re.compile(pattern) for pattern in patterns]
+
+        def scan(source, relative, blocked=False):
+            if any(pattern.search(str(relative)) for pattern in ignored):
+                return
+            destination = target / relative
+            directory = source.is_dir() and not source.is_symlink()
+            if not directory:
+                if relative in destinations and destinations[relative] != source:
+                    raise ValueError(f'Packages overlap at {relative}')
+                destinations[relative] = source
+            present = os.path.lexists(destination)
+            if not blocked and present:
+                if destination.is_symlink() and destination.resolve() == source.resolve():
+                    return
+                if destination.is_symlink() or not directory or not destination.is_dir():
+                    if str(relative) in protected:
+                        raise ValueError(f'Refusing to move shared root {destination}; resolve its symlink first')
+                    conflicts[destination] = None
+                    blocked = True
+            if directory:
+                for child in sorted(source.iterdir()):
+                    scan(child, relative / child.name, blocked)
+
+        for child in sorted(package_root.iterdir()):
+            scan(child, Path(child.name))
+
+    stamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+    for path in conflicts:
+        backup = path.with_name(path.name + '-backup-' + stamp)
+        suffix = 1
+        while os.path.lexists(backup) or backup in conflicts.values():
+            backup = path.with_name(path.name + '-backup-' + stamp + f'-{suffix}')
+            suffix += 1
+        conflicts[path] = backup
+        print(f'Backup: {path} -> {backup}', flush=True)
+    command = ['stow', '--restow', '--no-folding', '--dir=' + str(repo), '--target=' + str(target)]
+    print('Stow packages: ' + ', '.join(args.packages), flush=True)
+    if args.dry_run:
+        return
+    moved = []
+    try:
+        for path, backup in conflicts.items():
+            path.rename(backup)
+            moved.append((path, backup))
+        subprocess.run(command + ['--simulate'] + args.packages, check=True)
+        subprocess.run(command + args.packages, check=True)
+    except BaseException:
+        for path, backup in reversed(moved):
+            if path.is_symlink() and path.resolve(strict=False).is_relative_to(repo):
+                path.unlink()
+            if not os.path.lexists(path):
+                backup.rename(path)
+            else:
+                print(f'Restore manually: {backup} -> {path} (destination now exists)', file=sys.stderr)
+        raise
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (OSError, ValueError, subprocess.CalledProcessError) as error:
+        print(f'stow-with-backups: {error}', file=sys.stderr)
+        sys.exit(1)
